@@ -1,0 +1,44 @@
+/* Rich code blocks. The original Pygments block stays in the document as a
+ * fallback and is hidden once its replacement mounts. */
+
+.codeview.bd-codeview-replaced { display: none; }
+
+.bd-codeview {
+  margin: 20px 0 24px;
+  border: 1px solid var(--bd-rule);
+  background: var(--bd-surface);
+  overflow: hidden;
+}
+
+/* The component styles its own interior; only the frame is ours. */
+.bd-codeview diffs-container { display: block; }
+
+/* Comments rendered inside a code block, on the line they belong to. */
+.bd-codeview__note {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 12px;
+  margin: 2px 0;
+  background: var(--bd-accent-tint);
+  border-left: 3px solid var(--bd-accent);
+  font-family: var(--bd-text);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.bd-codeview__note-kind {
+  flex: 0 0 auto;
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bd-accent);
+}
+
+.bd-codeview__note-body { color: var(--bd-ink); }
+
+@media print {
+  .codeview.bd-codeview-replaced { display: block; }
+  .bd-codeview { display: none; }
+}

@@ -1,0 +1,10 @@
+title = "NakamaDevs secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "nakama-secret-scan-canary"
+description = "Synthetic rule proving the configured scanner is operational"
+regex = '''NAKAMA_SECRET_SCAN_CANARY_[A-Z0-9]{32}'''
+keywords = ["NAKAMA_SECRET_SCAN_CANARY_"]

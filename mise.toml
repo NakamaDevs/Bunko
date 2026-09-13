@@ -1,0 +1,43 @@
+[settings]
+lockfile = true
+lockfile_platforms = ["macos-arm64", "linux-x64"]
+
+[tools]
+node = "24.20.0"
+uv = "0.12.9"
+gitleaks = "8.30.0"
+actionlint = "1.7.12"
+prek = "0.4.11"
+
+[tasks.setup]
+description = "Install locked development dependencies and generate the Aspire SDK"
+run = ["npm ci", "npm ci --prefix tools/review/web", "uv sync --project tools --frozen", "npx --no-install aspire restore --non-interactive"]
+
+[tasks."assets:build"]
+description = "Build the reviewer and documentation code viewer"
+run = ["npm run build --prefix tools/review/web", "uv run --project tools python tools/docs/codeview/vendor.py"]
+
+[tasks.test]
+description = "Check configuration, release safety, notes, Git edits, docs, and gateway"
+run = ["uv run --project tools python -m unittest discover -s tests -v", "uv run --project tools python -m unittest discover -s tools/tests -v"]
+
+[tasks.verify]
+description = "Run the complete Bunko validation gate"
+run = ["mise run governance:check", "mise run test", "npm run lint", "npx --no-install tsc --noEmit -p tsconfig.apphost.json", "tools/review/web/node_modules/.bin/vue-tsc --noEmit -p tools/review/web/tsconfig.json", "mise run assets:build", "uv run --project tools python scripts/package.py"]
+
+[tasks."governance:check"]
+run = ["uv run --project tools python scripts/nakama_governance.py self-test", "uv run --project tools python scripts/nakama_governance.py agent-contract", "uv run --project tools python scripts/nakama_governance.py pr-branch", "uv run --project tools python scripts/nakama_governance.py pr-title", "uv run --project tools python scripts/nakama_governance.py supply-chain", "uv run --project tools python scripts/nakama_governance.py runner-policy", "uv run --project tools python scripts/nakama_governance.py workflow-events", "mise run security:secrets", "actionlint"]
+
+[tasks."security:secrets"]
+run = "uv run --project tools python scripts/nakama_governance.py secrets history"
+
+[tasks."security:secrets:staged"]
+run = "uv run --project tools python scripts/nakama_governance.py secrets staged"
+
+[tasks."hooks:install"]
+run = "uv run --project tools python scripts/nakama_governance.py install-hooks"
+
+[tasks.package]
+description = "Produce the versioned bundle, checksums, and consumer pin"
+depends = ["assets:build"]
+run = "uv run --project tools python scripts/package.py"
