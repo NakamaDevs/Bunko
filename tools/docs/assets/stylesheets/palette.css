@@ -1,0 +1,145 @@
+/* Command palette, styled with the SDLC design tokens from sdlc.css. */
+
+.bd-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 24px 24px;
+}
+
+.bd-palette[hidden] { display: none !important; }
+
+body.bd-palette-open { overflow: hidden; }
+
+.bd-palette__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bd-ink) 44%, transparent);
+}
+
+.bd-palette__panel {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-ink);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
+}
+
+/* ---------- field ---------- */
+
+.bd-palette__field {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bd-rule);
+}
+
+.bd-palette__prompt {
+  font-family: var(--bd-mono);
+  font-size: 13px;
+  color: var(--bd-accent);
+  flex: 0 0 auto;
+}
+
+.bd-palette__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--bd-text);
+  font-size: 17px;
+  color: var(--bd-ink);
+}
+
+.bd-palette__input::placeholder { color: var(--bd-faint); }
+
+/* ---------- results ---------- */
+
+.bd-palette__list {
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.bd-palette__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 9px 20px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+
+.bd-palette__item.is-active {
+  background: var(--bd-accent-tint);
+  border-left-color: var(--bd-accent);
+}
+
+.bd-palette__label {
+  font-size: 15px;
+  color: var(--bd-ink);
+  line-height: 1.4;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Headings sit visually below pages without another type size. */
+.bd-palette__label.is-section::before {
+  content: "› ";
+  color: var(--bd-accent);
+}
+
+.bd-palette__label b {
+  font-weight: 700;
+  color: var(--bd-accent);
+}
+
+.bd-palette__item.is-active .bd-palette__label b { color: var(--bd-accent); }
+
+.bd-palette__note {
+  flex: 0 0 auto;
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bd-faint);
+  white-space: nowrap;
+}
+
+.bd-palette__empty {
+  padding: 18px 20px;
+  font-family: var(--bd-mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--bd-muted);
+}
+
+/* ---------- hint ---------- */
+
+.bd-palette__hint {
+  padding: 10px 20px;
+  border-top: 1px solid var(--bd-rule);
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--bd-faint);
+}
+
+@media (max-width: 600px) {
+  .bd-palette { padding: 6vh 12px 12px; }
+  .bd-palette__panel { max-height: 80vh; }
+}

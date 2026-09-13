@@ -1,0 +1,31 @@
+schema_version = 1
+repository = "NakamaDevs/Bunko"
+kind = "single"
+governance_version = "2.0.0"
+
+[skills]
+bundle = "NakamaDevs/skills"
+version = "1.0.0"
+source = "https://github.com/NakamaDevs/skills.git"
+revision = "630817cc874fbb748eb23f24920d573d8d8d1ad1"
+
+[linear]
+team = "NAK"
+project = "Bunko"
+
+[quality]
+quick = "mise run test"
+full = "mise run verify"
+hooks_install = "mise run hooks:install"
+
+[review]
+router = "nakama-review-change"
+
+[harness]
+agent_ready = false
+
+[discord]
+guild_id = "875555017451507722"
+project_thread_id = ""
+operations_channel_id = "1533964854078214175"
+operator_role_id = "1320910752466468874"

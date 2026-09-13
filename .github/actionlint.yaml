@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - nakama-macos-arm64
+    - nakama-dependabot-macos-arm64
