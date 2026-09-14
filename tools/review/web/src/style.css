@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* SDLC design tokens, shared with the documentation site so the review tool
+ * and the docs read as one product. shadcn-vue's semantic names are mapped onto
+ * these below, so its components inherit the palette instead of carrying their
+ * own. */
+:root {
+  --paper: #F5F6FC;
+  --surface: #FFFFFF;
+  --grid: #E5E8F5;
+  --rule: #D8DDF0;
+  --ink: #171B32;
+  --body: #303750;
+  --muted-ink: #646D8C;
+  --faint: #8991AC;
+  --accent-ink: #6754D9;
+  --accent-2: #589DF6;
+  --accent-tint: #EDE9FF;
+  --ok: #167846;
+  --stop: #B82D75;
+  --radius: 0px;
+}
+
+.dark {
+  --paper: #080B14;
+  --surface: #101626;
+  --grid: #1B2238;
+  --rule: #29314B;
+  --ink: #EDF1FF;
+  --body: #C3CCE3;
+  --muted-ink: #939FBE;
+  --faint: #75819E;
+  --accent-ink: #589DF6;
+  --accent-2: #6754D9;
+  --accent-tint: #22203D;
+  --ok: #5FCB93;
+  --stop: #F18BBF;
+}
+
+@theme inline {
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* SDLC names, used directly in the app's own markup. */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-grid: var(--grid);
+  --color-rule: var(--rule);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent-ink);
+  --color-accent-2: var(--accent-2);
+  --color-accent-tint: var(--accent-tint);
+  --color-ok: var(--ok);
+  --color-stop: var(--stop);
+
+  /* shadcn-vue's semantic names, driven by the same palette. */
+  --color-background: var(--paper);
+  --color-foreground: var(--body);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--accent-ink);
+  --color-primary-foreground: var(--surface);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted-ink);
+  --color-accent: var(--accent-tint);
+  --color-accent-foreground: var(--accent-ink);
+  --color-destructive: var(--stop);
+  --color-destructive-foreground: var(--surface);
+  --color-border: var(--rule);
+  --color-input: var(--rule);
+  --color-ring: var(--accent-ink);
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+}
+
+@layer base {
+  * { border-color: var(--rule); }
+
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 46px 46px;
+    color: var(--body);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+}
+
+/* The mono uppercase label used for every kicker, column head, and chip. */
+@utility kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted-ink);
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+"""Run Bunko from a checkout or an installed release."""
+from bunko_app.cli import main
+
+raise SystemExit(main())

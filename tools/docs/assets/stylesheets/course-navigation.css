@@ -1,0 +1,20 @@
+/* Course navigation.
+ *
+ * One destination per row. A horizontal strip could not fit the labels, so it
+ * scrolled sideways and hid the button the reader most wanted. Labels wrap
+ * instead of overflowing, so there is never a scrollbar.
+ */
+
+.md-typeset .course-nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+  margin: 1.4rem 0;
+}
+
+.md-typeset .course-nav .md-button {
+  margin: 0;
+  padding: 0.7em 1em;
+  text-align: center;
+  white-space: normal;
+}

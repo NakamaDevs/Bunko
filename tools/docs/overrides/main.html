@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block extrahead %}
+{{ super() }}
+<script src="{{ 'javascripts/diagram-viewer.js' | url }}"></script>
+{% if config.extra.tidewave_root %}
+<meta name="sdlc:tidewave-root" content="{{ config.extra.tidewave_root }}">
+<script src="{{ 'javascripts/tidewave.js' | url }}"></script>
+{% endif %}
+{% endblock %}

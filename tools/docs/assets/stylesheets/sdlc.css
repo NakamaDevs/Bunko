@@ -1,0 +1,501 @@
+/* SDLC documentation skin.
+ *
+ * Applies the SDLC editorial design system on top of the Material/Zensical
+ * layout. Only design tokens and typography are changed; the sidebar, search,
+ * and table of contents keep their behaviour.
+ *
+ * Tokens come from the SDLC editorial reference: Archivo for display, Inter
+ * for body copy, Roboto Mono for labels and code, blue and purple accents, and a
+ * 46px grid on paper.
+ */
+
+/* ---------- tokens ---------- */
+
+:root {
+  --bd-paper: #F5F6FC;
+  --bd-surface: #FFFFFF;
+  --bd-grid: #E5E8F5;
+  --bd-rule: #D8DDF0;
+  --bd-ink: #171B32;
+  --bd-body: #303750;
+  --bd-muted: #646D8C;
+  --bd-faint: #8991AC;
+  --bd-accent: #6754D9;
+  --bd-accent-2: #589DF6;
+  --bd-accent-tint: #EDE9FF;
+  --bd-ok-t: #167846;  --bd-ok-s: #E0F5E9;
+  --bd-warn-t: #8A5A08; --bd-warn-s: #FBEFD9;
+  --bd-stop-t: #B82D75; --bd-stop-s: #FCE2D7;
+  --bd-code-bg: #E9ECF7;
+
+  --bd-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --bd-text: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --bd-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Mono label treatment, used for kickers, table headers, and nav titles. */
+  --bd-label-size: 11.5px;
+  --bd-label-track: .16em;
+
+  /* Space above a section heading, between its rule and its text. Anything
+   * aligning to the heading's text has to clear this. */
+  --bd-section-lead: 44px;
+}
+
+[data-md-color-scheme="slate"] {
+  --bd-paper: #080B14;
+  --bd-surface: #101626;
+  --bd-grid: #1B2238;
+  --bd-rule: #29314B;
+  --bd-ink: #EDF1FF;
+  --bd-body: #C3CCE3;
+  --bd-muted: #939FBE;
+  --bd-faint: #75819E;
+  --bd-accent: #589DF6;
+  --bd-accent-2: #6754D9;
+  --bd-accent-tint: #22203D;
+  --bd-ok-t: #5FCB93;  --bd-ok-s: #14291E;
+  --bd-warn-t: #E0AE5A; --bd-warn-s: #2B2113;
+  --bd-stop-t: #F18BBF; --bd-stop-s: #301710;
+  --bd-code-bg: #1B2238;
+}
+
+/* ---------- map tokens onto the theme ---------- */
+
+:root,
+[data-md-color-scheme="default"],
+[data-md-color-scheme="slate"] {
+  --md-text-font-family: var(--bd-text);
+  --md-code-font-family: var(--bd-mono);
+
+  --md-default-bg-color: var(--bd-paper);
+  --md-default-bg-color--light: var(--bd-surface);
+  --md-default-bg-color--lighter: var(--bd-surface);
+  --md-default-bg-color--lightest: var(--bd-surface);
+
+  --md-default-fg-color: var(--bd-body);
+  --md-default-fg-color--light: var(--bd-muted);
+  --md-default-fg-color--lighter: var(--bd-faint);
+  --md-default-fg-color--lightest: var(--bd-rule);
+
+  /* The header reads as paper, not as a coloured bar. */
+  --md-primary-fg-color: var(--bd-paper);
+  --md-primary-fg-color--light: var(--bd-surface);
+  --md-primary-fg-color--dark: var(--bd-paper);
+  --md-primary-bg-color: var(--bd-ink);
+  --md-primary-bg-color--light: var(--bd-muted);
+
+  --md-accent-fg-color: var(--bd-accent);
+  --md-accent-fg-color--transparent: var(--bd-accent-tint);
+  --md-accent-bg-color: var(--bd-surface);
+
+  --md-typeset-color: var(--bd-body);
+  --md-typeset-a-color: var(--bd-accent);
+  --md-typeset-mark-color: var(--bd-accent-tint);
+  --md-typeset-del-color: var(--bd-stop-s);
+  --md-typeset-ins-color: var(--bd-ok-s);
+  --md-typeset-table-color: var(--bd-rule);
+
+  --md-code-bg-color: var(--bd-code-bg);
+  --md-code-fg-color: var(--bd-ink);
+
+  --md-footer-bg-color: var(--bd-paper);
+  --md-footer-bg-color--dark: var(--bd-paper);
+  --md-footer-fg-color: var(--bd-body);
+  --md-footer-fg-color--light: var(--bd-faint);
+  --md-footer-fg-color--lighter: var(--bd-faint);
+}
+
+/* ---------- page ground ---------- */
+
+body {
+  background-color: var(--bd-paper);
+  background-image:
+    linear-gradient(var(--bd-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bd-grid) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Panels that sit on the grid need their own ground so copy stays legible. */
+.md-typeset table:not([class]),
+.md-typeset details,
+.md-typeset .admonition {
+  background: var(--bd-surface);
+}
+
+/* ---------- header ---------- */
+
+.md-header {
+  background: var(--bd-paper);
+  color: var(--bd-ink);
+  border-bottom: 1px solid var(--bd-rule);
+  box-shadow: none;
+}
+
+.md-header--shadow { box-shadow: none; }
+
+.md-header__title {
+  font-family: var(--bd-display);
+  font-weight: 700;
+  letter-spacing: -.014em;
+  color: var(--bd-ink);
+}
+
+/* The wordmark replaces the theme icon; both variants ship and swap by scheme. */
+.md-header__button.md-logo { padding: 4px 8px; }
+
+.md-header__button.md-logo :is(img, svg) {
+  width: 104px;
+  height: 41px;
+  object-fit: contain;
+
+}
+
+.md-tabs {
+  background: var(--bd-paper);
+  border-bottom: 1px solid var(--bd-rule);
+  color: var(--bd-muted);
+}
+
+.md-tabs__link {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-label-size);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  opacity: 1;
+  color: var(--bd-muted);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover { color: var(--bd-accent); }
+
+/* ---------- sidebar navigation ---------- */
+
+.md-nav {
+  font-size: 14px;
+  font-family: var(--bd-text);
+}
+
+.md-nav__title {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-label-size);
+  letter-spacing: var(--bd-label-track);
+  text-transform: uppercase;
+  color: var(--bd-muted);
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.md-nav__link { color: var(--bd-body); }
+.md-nav__link:hover,
+.md-nav__link:focus { color: var(--bd-accent); }
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--bd-accent);
+  font-weight: 600;
+}
+
+/* Second-level sections read as labelled groups, matching the panel headings. */
+.md-nav--secondary .md-nav__title { color: var(--bd-muted); }
+
+/* ---------- search ---------- */
+
+.md-search__form {
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-rule);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.md-search__form:hover { background: var(--bd-surface); }
+
+.md-search__input { font-family: var(--bd-text); }
+
+.md-search__input::placeholder {
+  font-family: var(--bd-mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--bd-faint);
+}
+
+.md-search__output { border-radius: 0; }
+
+/* ---------- typography ---------- */
+
+.md-typeset {
+  font-family: var(--bd-text);
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: var(--bd-body);
+}
+
+.md-typeset h1 {
+  font-family: var(--bd-display);
+  font-weight: 800;
+  letter-spacing: -.028em;
+  font-size: clamp(34px, 4.6vw, 52px);
+  line-height: 1.04;
+  color: var(--bd-ink);
+  margin: 0 0 0;
+  text-wrap: balance;
+}
+
+/* The accent rule under the page title is the masthead signature. */
+.md-typeset h1::after {
+  content: "";
+  display: block;
+  width: 151px;
+  height: 9px;
+  background: var(--bd-accent);
+  margin: 22px 0 26px;
+}
+
+/* Section separators: a hairline rule above every top-level section. */
+.md-typeset h2 {
+  font-family: var(--bd-display);
+  font-weight: 700;
+  letter-spacing: -.022em;
+  font-size: clamp(24px, 3vw, 31px);
+  line-height: 1.14;
+  color: var(--bd-ink);
+  border-top: 1px solid var(--bd-rule);
+  padding-top: var(--bd-section-lead);
+  margin: 52px 0 18px;
+  text-wrap: balance;
+}
+
+.md-typeset h3 {
+  font-family: var(--bd-display);
+  font-weight: 700;
+  letter-spacing: -.014em;
+  font-size: 19.5px;
+  color: var(--bd-ink);
+  margin: 38px 0 12px;
+  text-wrap: balance;
+}
+
+/* Fourth level is a mono kicker rather than another display size. */
+.md-typeset h4 {
+  font-family: var(--bd-mono);
+  font-weight: 500;
+  font-size: var(--bd-label-size);
+  letter-spacing: var(--bd-label-track);
+  text-transform: uppercase;
+  color: var(--bd-muted);
+  margin: 30px 0 10px;
+}
+
+.md-typeset h5,
+.md-typeset h6 {
+  font-family: var(--bd-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--bd-faint);
+}
+
+/* The opening paragraph carries the standfirst weight. */
+.md-typeset h1 + p {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--bd-body);
+  max-width: 60ch;
+}
+
+.md-typeset strong { color: var(--bd-ink); font-weight: 600; }
+
+.md-typeset a { color: var(--bd-accent); }
+.md-typeset a:hover { color: var(--bd-accent-2); }
+
+.md-typeset :is(ul, ol) li::marker { color: var(--bd-accent); }
+
+.md-typeset ol li::marker {
+  font-family: var(--bd-mono);
+  font-size: 13px;
+}
+
+/* ---------- buttons ---------- */
+
+/* The theme draws a button's border from the primary colour, which here is the
+ * page itself, so an outlined button would be invisible. Both variants are
+ * given their own colours. */
+.md-typeset .md-button {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-label-size);
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-radius: 0;
+  border: 1px solid var(--bd-ink);
+  background: transparent;
+  color: var(--bd-ink);
+  padding: 11px 20px;
+  transition: none;
+}
+
+.md-typeset .md-button:hover,
+.md-typeset .md-button:focus-visible {
+  background: var(--bd-ink);
+  border-color: var(--bd-ink);
+  color: var(--bd-paper);
+}
+
+.md-typeset .md-button--primary {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+  color: var(--bd-paper);
+}
+
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus-visible {
+  background: var(--bd-accent-2);
+  border-color: var(--bd-accent-2);
+  color: var(--bd-paper);
+}
+
+/* ---------- quotes and callouts ---------- */
+
+.md-typeset blockquote {
+  border-left: 3px solid var(--bd-rule);
+  padding: 2px 0 2px 18px;
+  margin: 18px 0;
+  color: var(--bd-muted);
+  font-size: 15px;
+}
+
+.md-typeset :is(.admonition, details) {
+  border: 1px solid var(--bd-rule);
+  border-left: 4px solid var(--bd-accent);
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 15px;
+}
+
+.md-typeset :is(.admonition-title, summary) {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-label-size);
+  letter-spacing: var(--bd-label-track);
+  text-transform: uppercase;
+  font-weight: 500;
+  background: transparent;
+  color: var(--bd-accent);
+}
+
+.md-typeset :is(.admonition-title, summary)::before { display: none; }
+
+/* ---------- tables ---------- */
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--bd-rule);
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 14.5px;
+  display: table;
+  width: 100%;
+}
+
+.md-typeset table:not([class]) th {
+  font-family: var(--bd-mono);
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--bd-muted);
+  background: transparent;
+  border-bottom: 1px solid var(--bd-rule);
+  padding: 12px 16px;
+  vertical-align: bottom;
+  min-width: 0;
+}
+
+.md-typeset table:not([class]) td {
+  border-bottom: 1px solid var(--bd-rule);
+  padding: 12px 16px;
+  vertical-align: top;
+  line-height: 1.48;
+}
+
+.md-typeset table:not([class]) tr:last-child td { border-bottom: none; }
+.md-typeset table:not([class]) tr:hover { background: transparent; }
+.md-typeset table:not([class]) strong { color: var(--bd-ink); }
+
+/* ---------- code ---------- */
+
+.md-typeset code {
+  font-family: var(--bd-mono);
+  font-size: .87em;
+  background: var(--bd-code-bg);
+  color: var(--bd-ink);
+  border-radius: 0;
+  padding: 1.5px 5px;
+}
+
+.md-typeset pre > code {
+  padding: 16px 18px;
+  border: 1px solid var(--bd-rule);
+}
+
+.md-typeset :is(.highlight, .highlighttable) {
+  border-radius: 0;
+}
+
+.md-typeset .highlight :is(.filename, .md-code__content) { border-radius: 0; }
+
+/* ---------- table of contents ---------- */
+
+.md-nav--secondary .md-nav__list .md-nav__link {
+  font-size: 13.5px;
+  color: var(--bd-muted);
+}
+
+.md-nav--secondary .md-nav__link--active { color: var(--bd-accent); }
+
+/* ---------- footer ---------- */
+
+.md-footer {
+  background: var(--bd-paper);
+  border-top: 3px solid var(--bd-ink);
+  margin-top: 64px;
+}
+
+.md-footer-meta {
+  background: var(--bd-paper);
+  font-family: var(--bd-mono);
+  font-size: var(--bd-label-size);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--bd-faint);
+}
+
+/* The accent bar repeats the masthead rule at the end of the page. */
+.md-footer-meta .md-copyright::before {
+  content: "";
+  display: inline-block;
+  width: 59px;
+  height: 9px;
+  background: var(--bd-accent);
+  vertical-align: middle;
+  margin-right: 14px;
+}
+
+.md-copyright,
+.md-copyright__highlight { color: var(--bd-faint); }
+
+.md-footer__link {
+  font-family: var(--bd-mono);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  font-size: var(--bd-label-size);
+}
+
+.md-footer__title { font-family: var(--bd-display); font-weight: 700; }
+
+/* ---------- focus ---------- */
+
+:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

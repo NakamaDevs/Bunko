@@ -1,0 +1,14 @@
+.diagram-container { position: relative; padding-top: 2.5rem; }
+.diagram-expand { position: absolute; top: .25rem; right: .25rem; }
+.diagram-expand, .diagram-dialog button { border: 1px solid #8b8b8b; border-radius: .3rem; padding: .35rem .65rem; background: var(--md-default-bg-color, #fff); color: var(--md-default-fg-color, #222); cursor: pointer; font: inherit; }
+.diagram-dialog { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--md-default-bg-color, #fff); color: var(--md-default-fg-color, #222); }
+.diagram-dialog[open] { display: flex; flex-direction: column; }
+.diagram-dialog header { display: flex; align-items: center; gap: .65rem; padding: .8rem 1rem; border-bottom: 1px solid #8885; flex-wrap: wrap; }
+.diagram-dialog header span { flex: 1; font-size: .8rem; }
+.diagram-dialog output { min-width: 3.5rem; text-align: center; }
+.diagram-dialog button:disabled { opacity: .4; cursor: default; }
+.diagram-dialog button:focus-visible, .diagram-expand:focus-visible { outline: 3px solid #ed8936; outline-offset: 3px; }
+.diagram-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.diagram-viewport:active { cursor: grabbing; }
+.diagram-canvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; pointer-events: none; }
+@media print { .diagram-expand, .diagram-dialog { display: none !important; } .diagram-container { padding-top: 0; } }

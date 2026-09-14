@@ -1,0 +1,488 @@
+/* Reading-time notes. Markers only appear once the notes service answers. */
+
+body.bd-notes-ready .md-content__inner [data-bd-anchor] {
+  position: relative;
+}
+
+/* The marker sits in the gutter, clear of the text column. */
+body.bd-notes-ready .md-content__inner [data-bd-anchor]::before {
+  content: "+";
+  position: absolute;
+  left: -28px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--bd-mono);
+  font-size: 13px;
+  color: var(--bd-faint);
+  border: 1px solid transparent;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity .12s ease;
+}
+
+body.bd-notes-ready .md-content__inner [data-bd-anchor]:hover::before {
+  opacity: 1;
+  border-color: var(--bd-rule);
+  background: var(--bd-surface);
+}
+
+/* A section heading is pushed down by its rule, so its marker must be too,
+ * otherwise the control floats in the gap above the text. */
+body.bd-notes-ready .md-content__inner h2[data-bd-anchor]::before {
+  top: calc(var(--bd-section-lead) + 4px);
+}
+
+/* A block that already carries notes shows its count permanently. */
+body.bd-notes-ready .md-content__inner [data-bd-count]::before {
+  content: attr(data-bd-count);
+  opacity: 1;
+  color: var(--bd-accent);
+  border-color: var(--bd-accent);
+  background: var(--bd-accent-tint);
+}
+
+body.bd-notes-ready .md-content__inner [data-bd-count] {
+  box-shadow: -3px 0 0 var(--bd-accent);
+  padding-left: 10px;
+  margin-left: -13px;
+}
+
+/* The sidebar's width is shared: the page reserves it, and the composer steps
+ * aside by it so the two never overlap. */
+:root { --bd-panel-width: 340px; }
+
+/* ---------- selection ---------- */
+
+/* Offered above a text selection, the way a review comment is started. */
+.bd-select-note {
+  position: absolute;
+  z-index: 950;
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: 1px solid var(--bd-ink);
+  background: var(--bd-ink);
+  color: var(--bd-paper);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .22);
+}
+
+.bd-select-note:hover {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+}
+
+.bd-select-note[hidden] { display: none !important; }
+
+/* ---------- composer ---------- */
+
+.bd-note {
+  position: absolute;
+  right: 24px;
+  /* Above the sidebar: the composer is what the reader is typing into. */
+  z-index: 960;
+  width: 320px;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+}
+
+/* An absolutely positioned box is measured from the viewport, not from the
+ * page's padding, so it has to clear the sidebar itself. */
+body.bd-panel-open .bd-note { right: calc(var(--bd-panel-width) + 24px); }
+
+.bd-note__head {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--bd-rule);
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--bd-muted);
+}
+
+/* Opens this page's own Markdown in the review tool, at this text. */
+.bd-note__edit {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border: 1px solid var(--bd-rule);
+  background: transparent;
+  color: var(--bd-muted);
+  cursor: pointer;
+}
+
+.bd-note__edit:hover { border-color: var(--bd-accent); color: var(--bd-accent); }
+
+.bd-note__edit[hidden] { display: none !important; }
+
+.bd-note__head { position: relative; }
+
+/* Which page and section the note will be filed under. */
+.bd-note__where {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--bd-rule);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bd-ink);
+  background: var(--bd-paper);
+}
+
+/* The text the note was written against. */
+.bd-note__quote {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--bd-rule);
+  border-left: 3px solid var(--bd-accent);
+  background: var(--bd-paper);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--bd-muted);
+  max-height: 96px;
+  overflow-y: auto;
+}
+
+.bd-note__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--bd-rule);
+}
+
+.bd-note__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 10px 14px;
+  border-bottom: 1px dotted var(--bd-rule);
+  font-size: 14px;
+}
+
+.bd-note__row:last-child { border-bottom: none; }
+
+.bd-note__kind {
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  background: var(--bd-accent-tint);
+  color: var(--bd-accent);
+}
+
+.bd-note__body { color: var(--bd-ink); line-height: 1.45; }
+
+.bd-note__resolve,
+.bd-note__cancel,
+.bd-note__save {
+  font-family: var(--bd-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1px solid var(--bd-rule);
+  background: transparent;
+  color: var(--bd-muted);
+  cursor: pointer;
+}
+
+.bd-note__save {
+  border-color: var(--bd-accent);
+  background: var(--bd-accent);
+  color: var(--bd-surface);
+}
+
+.bd-note__form { padding: 12px 14px; }
+
+.bd-note__select,
+.bd-note__input {
+  width: 100%;
+  font-family: var(--bd-text);
+  font-size: 14px;
+  color: var(--bd-ink);
+  background: var(--bd-paper);
+  border: 1px solid var(--bd-rule);
+  padding: 7px 9px;
+  margin-bottom: 9px;
+}
+
+.bd-note__select {
+  font-family: var(--bd-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+.bd-note__input { resize: vertical; }
+
+.bd-note__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 900px) {
+  .bd-note { position: fixed; inset: auto 12px 12px; width: auto; }
+  body.bd-notes-ready .md-content__inner [data-bd-anchor]::before { display: none; }
+}
+
+/* ---------- comments panel ---------- */
+
+/* A real sidebar: full height on the right edge, with the page laid out beside
+ * it rather than underneath. Collapses to its rail, which stays docked. */
+.bd-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 940;
+  width: var(--bd-panel-width);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--bd-text);
+  border-left: 1px solid var(--bd-rule);
+  background: var(--bd-surface);
+  transform: translateX(100%);
+  visibility: hidden;
+}
+
+.bd-panel.is-open { transform: none; visibility: visible; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bd-panel { transition: transform .16s ease; }
+}
+
+/* ---------- header button ---------- */
+
+.bd-header-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--bd-rule);
+  background: transparent;
+  color: var(--bd-muted);
+  cursor: pointer;
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.bd-header-button:hover { color: var(--bd-accent); border-color: var(--bd-accent); }
+
+.bd-header-button.is-active {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+  color: var(--bd-paper);
+}
+
+.bd-header-button__count {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--bd-accent-tint);
+  color: var(--bd-accent);
+}
+
+.bd-header-button.is-active .bd-header-button__count {
+  background: var(--bd-paper);
+  color: var(--bd-accent);
+}
+
+@media (max-width: 760px) {
+  .bd-header-button__label { display: none; }
+}
+
+/* The page reserves the sidebar's width, so nothing is ever covered. */
+/* A drawer over the page. Reflowing the whole document to make room moved every
+ * line the reader was looking at. */
+.bd-panel { box-shadow: -12px 0 32px rgba(0, 0, 0, .22); }
+
+.bd-panel__head {
+  flex: 0 0 auto;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--bd-rule);
+  position: relative;
+}
+
+.bd-panel__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--bd-faint);
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.bd-panel__close:hover { color: var(--bd-accent); }
+
+.bd-panel__title {
+  display: block;
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--bd-muted);
+  margin-bottom: 10px;
+}
+
+.bd-panel__scope { display: flex; gap: 0; }
+
+.bd-panel__scope button {
+  flex: 1 1 0;
+  font-family: var(--bd-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 7px 8px;
+  border: 1px solid var(--bd-rule);
+  background: transparent;
+  color: var(--bd-muted);
+  cursor: pointer;
+}
+
+.bd-panel__scope button + button { border-left: 0; }
+
+.bd-panel__scope button.is-active {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+  color: var(--bd-surface);
+}
+
+.bd-panel__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.bd-panel__item {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--bd-rule);
+}
+
+.bd-panel__item:last-child { border-bottom: none; }
+
+.bd-panel__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.bd-panel__kind {
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  background: var(--bd-accent-tint);
+  color: var(--bd-accent);
+  flex: 0 0 auto;
+}
+
+.bd-panel__where {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 11.5px;
+  color: var(--bd-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-panel__line {
+  font-family: var(--bd-mono);
+  font-size: 10.5px;
+  color: var(--bd-faint);
+  flex: 0 0 auto;
+}
+
+.bd-panel__body-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--bd-ink);
+}
+
+.bd-panel__quote {
+  margin: 7px 0 0;
+  padding-left: 9px;
+  border-left: 2px solid var(--bd-rule);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bd-faint);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bd-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.bd-panel__go,
+.bd-panel__resolve {
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1px solid var(--bd-rule);
+  background: transparent;
+  color: var(--bd-muted);
+  cursor: pointer;
+}
+
+.bd-panel__go:hover,
+.bd-panel__resolve:hover { border-color: var(--bd-accent); color: var(--bd-accent); }
+
+.bd-panel__tag {
+  font-family: var(--bd-mono);
+  font-size: 9.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--bd-faint);
+}
+
+.bd-panel__empty {
+  padding: 18px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--bd-faint);
+}
+
+/* The block a comment points at, briefly marked after navigating to it. */
+.bd-flash {
+  animation: bd-flash 1.6s ease-out;
+}
+
+@keyframes bd-flash {
+  from { background: var(--bd-accent-tint); }
+  to { background: transparent; }
+}
+
+@media (max-width: 900px) {
+  .bd-panel { display: none; }
+}
+
+@media print {
+  .bd-panel, .bd-select-note { display: none !important; }
+}
