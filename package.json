@@ -30,6 +30,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
     "@microsoft/aspire-cli": "13.5.3",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.28.2"
   }
 }
