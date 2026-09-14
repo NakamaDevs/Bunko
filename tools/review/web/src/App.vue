@@ -47,7 +47,16 @@ const fileText = ref<string | null>(null)
 /* Editing is off unless asked for: the tool is for reading code, and a stray
  * keystroke should not change a file. */
 const editing = ref(false)
-const drafts = ref(new Map<string, string>())
+const draftsByRepository = ref(new Map<string, Map<string, string>>())
+const drafts = computed({
+  get: () => draftsByRepository.value.get(repo.value) ?? new Map<string, string>(),
+  set: (value) => { draftsByRepository.value.set(repo.value, value) },
+})
+const workingTree = computed(() => !head.value || head.value === 'WORKTREE')
+const fileContext = ref('')
+const context = () => JSON.stringify([repo.value, head.value, selected.value, mode.value])
+const canEdit = computed(() => mode.value === 'files' && workingTree.value && fileContext.value === context())
+const saving = ref(false)
 const commitMessage = ref('')
 const committed = ref('')
 
@@ -126,48 +135,56 @@ async function openFile(path: string) {
   selected.value = path
   pendingLine.value = null
   committed.value = ''
-  const draft = drafts.value.get(path)
+  fileText.value = null
+  fileContext.value = ''
+  const requested = context()
+  const draft = workingTree.value ? drafts.value.get(path) : undefined
   if (draft !== undefined) {
     fileText.value = draft
+    fileContext.value = requested
     return
   }
   const payload = await guard(() =>
     review.blob(repo.value, path, head.value || 'WORKTREE'),
   )
+  if (requested !== context()) return
   fileText.value = payload?.contents ?? null
+  fileContext.value = payload?.contents != null ? requested : ''
 }
 
 /* An edit is held until it is saved, so leaving a file does not write it. */
 function recordDraft(contents: string) {
+  if (!editing.value || !canEdit.value || saving.value) return
   drafts.value.set(selected.value, contents)
   drafts.value = new Map(drafts.value)
 }
 
-async function saveDrafts() {
-  for (const [path, contents] of drafts.value) {
-    const saved = await guard(() => edits.save(repo.value, path, contents))
-    if (!saved) return false
+async function persistDrafts(commit: boolean) {
+  if (saving.value || !workingTree.value || !drafts.value.size) return
+  const target = repo.value
+  const snapshot = new Map(drafts.value)
+  const message = commitMessage.value
+  if (commit && !message.trim()) return
+  saving.value = true
+  try {
+    for (const [path, contents] of snapshot) await edits.save(target, path, contents)
+    const result = commit ? await edits.commit(target, message, [...snapshot.keys()]) : null
+    if (result) draftsByRepository.value.set(target, new Map())
+    if (repo.value === target) {
+      committed.value = result
+        ? `Committed ${result.commit} on ${result.branch}: ${result.files.length} file(s)`
+        : `Saved ${snapshot.size} file(s) to the working tree`
+      if (result) commitMessage.value = ''
+    }
+  } catch (error) {
+    problem.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    saving.value = false
   }
-  return true
 }
 
-async function saveWorkingTree() {
-  if (await saveDrafts()) {
-    committed.value = `Saved ${dirtyPaths.value.length} file(s) to the working tree`;
-  }
-}
-
-async function commitDrafts() {
-  if (!commitMessage.value.trim() || !dirtyPaths.value.length) return
-  if (!(await saveDrafts())) return
-  const paths = dirtyPaths.value
-  const result = await guard(() => edits.commit(repo.value, commitMessage.value, paths))
-  if (!result) return
-  committed.value = `Committed ${result.commit} on ${result.branch}: ${result.files.length} file(s)`
-  drafts.value = new Map()
-  commitMessage.value = ''
-  await loadChanges()
-}
+async function saveWorkingTree() { await persistDrafts(false) }
+async function commitDrafts() { await persistDrafts(true) }
 
 function discardDrafts() {
   drafts.value = new Map()
@@ -212,19 +229,23 @@ async function saveComment() {
   const line = pendingLine.value
   const body = draft.value.trim()
   if (line === null || !body) return
-  await notes.add({
-    page_path: `review:${repo.value}`,
-    page_title: `${repo.value} — ${selected.value}`,
-    block_anchor: `${repo.value}:${selected.value}`,
-    block_preview: `${selected.value}:${line}`,
-    heading: selected.value,
-    kind: draftKind.value,
-    body,
-    line_number: line,
-    repo: repo.value,
-    revision: head.value || 'WORKTREE',
-    file_path: selected.value,
+  const saved = await guard(async () => {
+    await notes.add({
+      page_path: `review:${repo.value}`,
+      page_title: `${repo.value} — ${selected.value}`,
+      block_anchor: `${repo.value}:${selected.value}`,
+      block_preview: `${selected.value}:${line}`,
+      heading: selected.value,
+      kind: draftKind.value,
+      body,
+      line_number: line,
+      repo: repo.value,
+      revision: head.value || 'WORKTREE',
+      file_path: selected.value,
+    })
+    return true
   })
+  if (!saved) return
   pendingLine.value = null
   draft.value = ''
   repoNotes.value = await notes.forRepository(repo.value)
@@ -274,8 +295,24 @@ onMounted(async () => {
   if (!(await openFromQuery())) await loadRepository()
 })
 
-watch(repo, loadRepository)
-watch([base, head], loadChanges)
+watch(repo, () => {
+  editing.value = false
+  fileContext.value = ''
+  base.value = ''
+  head.value = ''
+  commitMessage.value = ''
+  committed.value = ''
+  void loadRepository()
+}, { flush: 'sync' })
+watch(base, () => { if (!base.value) head.value = '' }, { flush: 'sync' })
+watch([base, head], () => {
+  editing.value = false
+  fileContext.value = ''
+  if (mode.value === 'files') {
+    void loadTree()
+    if (selected.value) void openFile(selected.value)
+  } else void loadChanges()
+}, { flush: 'sync' })
 </script>
 
 <template>
@@ -336,6 +373,7 @@ watch([base, head], loadChanges)
           v-if="mode === 'files'"
           :variant="editing ? 'default' : 'ghost'"
           size="sm"
+          :disabled="!canEdit || saving"
           :title="editing ? 'Editing: changes are tracked until committed' : 'Read only'"
           @click="editing = !editing"
         >
@@ -397,11 +435,11 @@ watch([base, head], loadChanges)
       </aside>
 
       <main class="min-w-0 p-6">
-        <div v-if="dirtyPaths.length" class="mb-4 border border-ink bg-surface">
+        <div v-if="dirtyPaths.length && workingTree" class="mb-4 border border-ink bg-surface">
           <div class="flex items-baseline gap-3 border-b border-rule px-4 py-2">
             <GitCommitHorizontal class="size-3.5 text-accent" />
             <span class="kicker">{{ dirtyPaths.length }} file(s) changed, not committed</span>
-            <Button variant="ghost" size="xs" class="ml-auto" @click="discardDrafts">Discard</Button>
+            <Button variant="ghost" size="xs" class="ml-auto" :disabled="saving" @click="discardDrafts">Discard</Button>
           </div>
           <ul class="max-h-28 overflow-y-auto border-b border-rule">
             <li
@@ -420,8 +458,8 @@ watch([base, head], loadChanges)
               class="min-w-0 flex-1 border border-rule bg-paper px-2 py-1.5 text-sm text-ink"
               @keydown.meta.enter="commitDrafts"
             />
-            <Button size="sm" @click="saveWorkingTree">Save files</Button>
-            <Button size="sm" :disabled="!commitMessage.trim()" @click="commitDrafts">Commit</Button>
+            <Button size="sm" :disabled="saving" @click="saveWorkingTree">Save files</Button>
+            <Button size="sm" :disabled="saving || !commitMessage.trim()" @click="commitDrafts">Commit</Button>
           </div>
         </div>
 
@@ -477,12 +515,13 @@ watch([base, head], loadChanges)
 
           <FilePane
             v-if="mode === 'files'"
+            :key="JSON.stringify([repo, head, selected])"
             ref="filePane"
             :path="selected"
             :contents="fileText"
             :dark="dark"
             :notes="fileNotes"
-            :editing="editing"
+            :editing="editing && canEdit && !saving"
             @comment="startComment"
             @change="recordDraft"
           />

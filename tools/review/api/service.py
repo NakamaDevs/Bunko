@@ -133,27 +133,54 @@ def _range(base: str | None, head: str | None) -> list[str]:
 
 def changed_files(name: str, base: str | None, head: str | None) -> list[dict]:
     path = repository(name)
-    args = ["diff", "--numstat", "--find-renames", *_range(base, head)]
+    args = ["diff", "--numstat", "-z", "--find-renames", *_range(base, head)]
     rows = []
-    for line in git(path, *args).splitlines():
-        parts = line.split("\t")
-        if len(parts) != 3:
+    records = iter(git(path, *args).split("\0"))
+    for record in records:
+        if not record:
             continue
-        added, removed, file_path = parts
+        added, removed, file_path = record.split("\t", 2)
+        old_path = file_path
+        if not file_path:
+            old_path, file_path = next(records), next(records)
         rows.append({
-            "path": file_path,
+            "path": file_path, "old_path": old_path,
             "added": None if added == "-" else int(added),
             "removed": None if removed == "-" else int(removed),
             "binary": added == "-",
         })
+    if not base and not head:
+        for file_path in git(path, "ls-files", "--others", "--exclude-standard", "-z").split("\0"):
+            if not file_path:
+                continue
+            try:
+                contents = blob(name, WORKTREE, file_path)
+            except GitError:
+                contents = None
+            binary = contents is None or "\0" in contents
+            rows.append({"path": file_path, "old_path": file_path,
+                         "added": None if binary else len(contents.splitlines()),
+                         "removed": None if binary else 0, "binary": binary})
     return rows
+
+
+def sides(name: str, base: str | None, head: str | None, file_path: str) -> dict:
+    old_path = next((row["old_path"] for row in changed_files(name, base, head)
+                     if row["path"] == file_path), file_path)
+    old_revision = head or "HEAD"
+    if base and head:
+        old_revision = git(repository(name), "merge-base", base, head).strip()
+    return {"path": file_path, "old": blob(name, old_revision, old_path),
+            "new": blob(name, head if base and head else WORKTREE, file_path)}
 
 
 def patch(name: str, base: str | None, head: str | None, file_path: str | None) -> str:
     path = repository(name)
     args = ["diff", "--find-renames", "--no-color", *_range(base, head)]
     if file_path:
-        args += ["--", file_path]
+        old_path = next((row["old_path"] for row in changed_files(name, base, head)
+                         if row["path"] == file_path), file_path)
+        args += ["--", old_path, file_path]
     text = git(path, *args)
     if len(text.encode("utf-8")) > MAX_PATCH_BYTES:
         raise GitError("This diff is too large to render; choose a single file.")
@@ -350,13 +377,7 @@ class Handler(BaseHTTPRequestHandler):
                 path = query.get("path")
                 if not path:
                     raise GitError("A path is required.")
-                base = query.get("base") or "HEAD"
-                head = query.get("head") or WORKTREE
-                return {
-                    "path": path,
-                    "old": blob(name, base, path),
-                    "new": blob(name, head, path),
-                }
+                return sides(name, query.get("base"), query.get("head"), path)
         raise GitError("Unknown endpoint.")
 
 

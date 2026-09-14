@@ -19,7 +19,7 @@ run = ["npm run build --prefix tools/review/web", "uv run --project tools python
 
 [tasks.test]
 description = "Check configuration, release safety, notes, Git edits, docs, and gateway"
-run = ["uv run --project tools python -m unittest discover -s tests -v", "uv run --project tools python -m unittest discover -s tools/tests -v"]
+run = ["node --test tools/review/web/tests/review.test.mjs", "uv run --project tools python -m unittest discover -s tests -v", "uv run --project tools python -m unittest discover -s tools/tests -v"]
 
 [tasks.verify]
 description = "Run the complete Bunko validation gate"

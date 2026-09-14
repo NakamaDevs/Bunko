@@ -57,5 +57,20 @@ class WorkspaceTests(unittest.TestCase):
         self.data["schema_version"] = 2
         with self.assertRaises(ValueError): self.load()
 
+    def test_rejects_database_content_and_runtime_overlap(self):
+        for database in ('guide/notes.duckdb', 'guide', '_build/bunko/notes.duckdb', '_build/bunko', '_build'):
+            with self.subTest(database=database):
+                self.data['runtime'] = {'notes_database': database}
+                with self.assertRaises(ValueError): self.load()
+
+    def test_resolves_database_symlinks_before_checking(self):
+        (self.root / 'alias').symlink_to(self.root / 'guide', target_is_directory=True)
+        self.data['runtime'] = {'notes_database': 'alias/notes.duckdb'}
+        with self.assertRaises(ValueError): self.load()
+
+    def test_repository_root_keeps_default_excluded_state(self):
+        self.data['documentation'][0]['path'] = '.'
+        self.assertTrue(self.load().database.is_relative_to(self.root.resolve() / '_build'))
+
 
 if __name__ == "__main__": unittest.main()
