@@ -75,7 +75,7 @@ class WorkspaceTests(unittest.TestCase):
     def test_accepts_site_review_palette_and_notes_ui_settings(self):
         (self.root / "mkdocs.yml").write_text("docs_dir: guide\n")
         (self.root / "review.css").write_text(":root {}")
-        self.data.update({"site": {"config": "mkdocs.yml"},
+        self.data.update({"site": {"config": "mkdocs.yml", "environment": ["DOCS_SOURCE_MODE"]},
                           "review": {"title": "Team Review", "stylesheets": ["review.css"]},
                           "palette": {"applications": [["web", "https://web.localhost/"]], "linear_workspace": "team"},
                           "runtime": {"notes_ui_port": 4213}})
@@ -92,6 +92,7 @@ class WorkspaceTests(unittest.TestCase):
             {"review": {"stylesheets": ["mkdocs.yml"]}},
             {"review": {"stylesheets": ["../escape.css"]}},
             {"palette": {"applications": [["only-name"]]}},
+            {"site": {"config": "mkdocs.yml", "environment": ["BUNKO_ROOT"]}},
             {"runtime": {"notes_ui_port": 80}},
         ]
         for change in cases:

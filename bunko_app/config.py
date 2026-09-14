@@ -85,6 +85,11 @@ class Workspace:
             if len(data["documentation"]) != 1:
                 raise ValueError("site.config renders exactly one documentation root")
             inside(root, site["config"], "site.config")
+            names = site.get("environment", [])
+            if not isinstance(names, list) or not all(
+                    isinstance(name, str) and re.fullmatch(r"[A-Z][A-Z0-9_]*", name) and not name.startswith("BUNKO_")
+                    for name in names):
+                raise ValueError("site.environment must list uppercase variable names, excluding BUNKO_*")
         review = data.get("review", {})
         if not isinstance(review, dict) or not isinstance(review.get("title", ""), str):
             raise ValueError("review.title must be a string")

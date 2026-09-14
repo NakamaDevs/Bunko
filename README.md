@@ -71,7 +71,7 @@ brand through optional `workspace.json` settings:
 
 ```json
 {
-  "site": {"config": "mkdocs.yml"},
+  "site": {"config": "mkdocs.yml", "environment": ["DOCS_SOURCE_MODE"]},
   "review": {"title": "Team Review", "stylesheets": ["theme/review.css"]},
   "palette": {
     "applications": [["storefront", "https://storefront.localhost/"]],
@@ -87,8 +87,11 @@ Navigation, `theme` (logo, palette, fonts, features, `custom_dir`), plugins,
 hooks, Markdown extensions, `extra_css`, `extra_javascript`, and `extra` apply
 unchanged, so page URLs and note anchors match the consumer's normal build.
 Zensical executes the `search` and `macros` plugins; it accepts but does not run
-hooks. Zensical requires `docs_dir` inside the configuration's directory, so Bunko
-writes `.bunko-site.yml` and `.bunko-site.build.yml` beside it. Ignore both in Git.
+hooks. `site.environment` names variables, such as macro settings, that
+`bunko start` forwards from its own environment to the renderer; static builds
+inherit the environment directly. Zensical requires `docs_dir` inside the
+configuration's directory, so Bunko writes `.bunko-site.yml` and
+`.bunko-site.build.yml` beside it. Ignore both in Git.
 
 Bunko adds its palette, notes, code viewer, and diagram viewer through a
 generated theme overlay. It loads its component stylesheets before the
