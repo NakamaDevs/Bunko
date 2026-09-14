@@ -72,5 +72,34 @@ class WorkspaceTests(unittest.TestCase):
         self.data['documentation'][0]['path'] = '.'
         self.assertTrue(self.load().database.is_relative_to(self.root.resolve() / '_build'))
 
+    def test_accepts_site_review_palette_and_notes_ui_settings(self):
+        (self.root / "mkdocs.yml").write_text("docs_dir: guide\n")
+        (self.root / "review.css").write_text(":root {}")
+        self.data.update({"site": {"config": "mkdocs.yml"},
+                          "review": {"title": "Team Review", "stylesheets": ["review.css"]},
+                          "palette": {"applications": [["web", "https://web.localhost/"]], "linear_workspace": "team"},
+                          "runtime": {"notes_ui_port": 4213}})
+        self.assertEqual(self.load().notes_ui_port, 4213)
+
+    def test_rejects_invalid_site_review_and_palette_settings(self):
+        (self.root / "mkdocs.yml").write_text("docs_dir: guide\n")
+        (self.root / "other").mkdir()
+        cases = [
+            {"site": {"config": "missing.yml"}},
+            {"site": {"config": "../outside.yml"}},
+            {"site": {"config": "mkdocs.yml"}, "documentation": self.data["documentation"] + [
+                {"id": "other", "label": "Other", "repository": "example", "path": "other"}]},
+            {"review": {"stylesheets": ["mkdocs.yml"]}},
+            {"review": {"stylesheets": ["../escape.css"]}},
+            {"palette": {"applications": [["only-name"]]}},
+            {"runtime": {"notes_ui_port": 80}},
+        ]
+        for change in cases:
+            with self.subTest(change=change):
+                data = json.loads(json.dumps(self.data))
+                data.update(change)
+                self.path.write_text(json.dumps(data))
+                with self.assertRaises(ValueError): Workspace.load(self.path)
+
 
 if __name__ == "__main__": unittest.main()

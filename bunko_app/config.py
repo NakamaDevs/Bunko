@@ -18,6 +18,7 @@ class Workspace:
     port: int
     name: str
     data: dict
+    notes_ui_port: int = 0
 
     @classmethod
     def load(cls, path: str | Path) -> "Workspace":
@@ -74,4 +75,43 @@ class Workspace:
         port = settings.get("port", 20000 + int(identity, 16) % 30000)
         if type(port) is not int or not 1024 <= port <= 65535:
             raise ValueError("runtime.port must be an integer from 1024 through 65535")
-        return cls(config, root, state, database, domain, port, data["name"], data)
+        ui_port = settings.get("notes_ui_port", 0)
+        if type(ui_port) is not int or not (ui_port == 0 or 1024 <= ui_port <= 65535):
+            raise ValueError("runtime.notes_ui_port must be 0 or an integer from 1024 through 65535")
+        site = data.get("site")
+        if site is not None:
+            if not isinstance(site, dict) or not isinstance(site.get("config"), str):
+                raise ValueError("site.config must name a MkDocs configuration file")
+            if len(data["documentation"]) != 1:
+                raise ValueError("site.config renders exactly one documentation root")
+            inside(root, site["config"], "site.config")
+        review = data.get("review", {})
+        if not isinstance(review, dict) or not isinstance(review.get("title", ""), str):
+            raise ValueError("review.title must be a string")
+        stylesheets = review.get("stylesheets", [])
+        if not isinstance(stylesheets, list):
+            raise ValueError("review.stylesheets must be a list")
+        for item in stylesheets:
+            if not isinstance(item, str) or not item.endswith(".css"):
+                raise ValueError("review.stylesheets must list CSS files")
+            inside(root, item, "review.stylesheets")
+        palette = data.get("palette", {})
+        if not isinstance(palette, dict):
+            raise ValueError("palette must be an object")
+        applications = palette.get("applications", [])
+        if not isinstance(applications, list) or not all(
+                isinstance(entry, list) and len(entry) == 2 and all(isinstance(part, str) for part in entry)
+                for entry in applications):
+            raise ValueError("palette.applications must list [name, url] pairs")
+        for key in ("applications_file", "linear_workspace"):
+            if not isinstance(palette.get(key, ""), str):
+                raise ValueError(f"palette.{key} must be a string")
+        return cls(config, root, state, database, domain, port, data["name"], data, ui_port)
+
+
+def inside(root: Path, relative: str, label: str) -> Path:
+    """Resolve an existing consumer file that must stay inside the workspace."""
+    path = (root / relative).resolve()
+    if not path.is_relative_to(root) or not path.is_file():
+        raise ValueError(f"{label} must name an existing file inside the workspace")
+    return path

@@ -61,11 +61,63 @@ resolve inside the selected repository. Omit `runtime` for isolated defaults
 based on the configuration's absolute path. Keep `_build/` ignored by Git.
 The reviewer lists only configured Git checkouts. Editing and committing are
 explicit UI actions; it does not push, switch branches, or rewrite history.
+Set `runtime.notes_ui_port` to serve DuckDB's UI for the notes database from
+the notes process; the default `0` leaves it off.
+
+## Customize the site and reviewer
+
+Bunko ships a neutral look. A consumer keeps its own navigation, plugins, and
+brand through optional `workspace.json` settings:
+
+```json
+{
+  "site": {"config": "mkdocs.yml"},
+  "review": {"title": "Team Review", "stylesheets": ["theme/review.css"]},
+  "palette": {
+    "applications": [["storefront", "https://storefront.localhost/"]],
+    "applications_file": "_build/state/applications.json",
+    "linear_workspace": "my-team"
+  }
+}
+```
+
+`site.config` renders the consumer's own MkDocs configuration in place. It
+requires exactly one documentation root, which must be its `docs_dir`.
+Navigation, `theme` (logo, palette, fonts, features, `custom_dir`), plugins,
+hooks, Markdown extensions, `extra_css`, `extra_javascript`, and `extra` apply
+unchanged, so page URLs and note anchors match the consumer's normal build.
+Zensical executes the `search` and `macros` plugins; it accepts but does not run
+hooks. Zensical requires `docs_dir` inside the configuration's directory, so Bunko
+writes `.bunko-site.yml` and `.bunko-site.build.yml` beside it. Ignore both in Git.
+
+Bunko adds its palette, notes, code viewer, and diagram viewer through a
+generated theme overlay. It loads its component stylesheets before the
+consumer's `extra_css`, so consumer tokens and rules win. The components use the
+`--bd-*` design tokens; list `stylesheets/sdlc.css` for Bunko's default skin or
+define those tokens in a brand stylesheet. A consumer `custom_dir` is copied over
+the overlay. A replacement `main.html` should include `partials/bunko-head.html`
+in its `extrahead` block. Startup refuses documentation files that would hide a
+Bunko asset, such as an old `javascripts/palette.js` copy.
+
+Place `<div data-bunko-notes></div>` on any page to list every open note live,
+grouped by page or repository file.
+
+`review.stylesheets` link after the reviewer's built CSS in both the static and
+`--dev-tools` modes. Override its tokens (`--paper`, `--surface`, `--ink`,
+`--accent-ink`, and the rest in `tools/review/web/src/style.css`) under `:root`
+and `.dark`. `review.title` names the page and header.
+
+The palette lists `palette.applications` and the `[name, url]` pairs from
+`palette.applications_file`, a JSON list or `{"applications": [...]}` object that
+may be absent. `linear_workspace` enables issue jumps; site mode also reads
+`extra.palette.linear_workspace`.
+
+## Requirements
 
 Requirements: Python 3.12, Git, Node.js 24, npm, and uv. The dependency-free
 launcher also runs with newer Python 3 versions; uv installs the locked Python
 3.12 service environment. Lifecycle commands currently target macOS and Linux;
-Windows is not supported in 0.1.0. macOS is the initial verified environment.
+Windows is not supported. macOS is the initial verified environment.
 All services bind to loopback. Trust the local Aspire certificate interactively
 when first requested; `aspire certs trust --non-interactive` can leave browser
 trust incomplete.

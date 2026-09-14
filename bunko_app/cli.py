@@ -40,7 +40,7 @@ def environment(workspace, runtime, dev_tools=False):
     return {**os.environ, "BUNKO_CONFIG": str(workspace.config), "BUNKO_ROOT": str(workspace.root),
             "BUNKO_STATE": str(workspace.state), "BUNKO_DATABASE": str(workspace.database),
             "BUNKO_DOMAIN": workspace.domain, "BUNKO_PORT": str(workspace.port),
-            "BUNKO_DEV_TOOLS": "1" if dev_tools else "0",
+            "BUNKO_DEV_TOOLS": "1" if dev_tools else "0", "BUNKO_NOTES_UI_PORT": str(workspace.notes_ui_port),
             "PYTHONPATH": str(runtime)}
 
 
@@ -125,6 +125,8 @@ def main(argv=None):
             missing = [tool for tool in ("git", "node", "npm", "uv") if not shutil.which(tool)]
             print(json.dumps({"version": version(), "config": str(workspace.config), "state": str(workspace.state),
                               "database": str(workspace.database), "domain": workspace.domain, "port": workspace.port,
+                              "docs_url": f"http://docs.{workspace.domain}:{workspace.port}/",
+                              "review_url": f"http://review.{workspace.domain}:{workspace.port}/",
                               "missing_tools": missing, "platform": sys.platform}, indent=2))
             if sys.platform not in {"darwin", "linux"}:
                 print("Bunko 0.1 supports macOS and Linux lifecycle commands; Windows is not supported.", file=sys.stderr)

@@ -1,0 +1,6 @@
+{#- Bunko page integrations. A consumer main.html that replaces Bunko's should include this partial in extrahead. -#}
+<script src="{{ 'javascripts/diagram-viewer.js' | url }}"></script>
+{% if config.extra.tidewave_root %}
+<meta name="sdlc:tidewave-root" content="{{ config.extra.tidewave_root }}">
+<script src="{{ 'javascripts/tidewave.js' | url }}"></script>
+{% endif %}
