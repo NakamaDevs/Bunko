@@ -56,10 +56,18 @@ class Workspace:
         # These must be distinct dedicated paths; never target a content root.
         if state == root or root.is_relative_to(state):
             raise ValueError("state_dir must not contain the workspace root")
+        if database == state or database.is_relative_to(state) or state.is_relative_to(database):
+            raise ValueError("notes_database must be separate from state_dir")
         for item in data["documentation"]:
             source = (root / repos[item["repository"]] / item["path"]).resolve()
             if source == state or source.is_relative_to(state):
                 raise ValueError("state_dir must not contain a documentation root")
+            if source == database or source.is_relative_to(database):
+                raise ValueError("notes_database must not contain a documentation root")
+            # Repository-root guides support the standard excluded _build directory.
+            # Other database locations inside maintained documentation are refused.
+            if database.is_relative_to(source) and "_build" not in database.relative_to(source).parts[:-1]:
+                raise ValueError("notes_database must be outside published documentation")
         domain = settings.get("domain", f"bunko-{identity}.localhost")
         if not isinstance(domain, str) or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.localhost", domain):
             raise ValueError("runtime.domain must be a DNS name ending in .localhost")

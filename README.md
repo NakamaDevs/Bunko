@@ -53,6 +53,9 @@ own account. Static documentation builds omit the toolbar.
 }
 ```
 
+Keep the notes database outside the runtime directory and published documentation.
+The standard `_build/state/notes.duckdb` location is excluded from repository-root guides.
+
 Repository paths resolve relative to this configuration. Documentation paths
 resolve inside the selected repository. Omit `runtime` for isolated defaults
 based on the configuration's absolute path. Keep `_build/` ignored by Git.

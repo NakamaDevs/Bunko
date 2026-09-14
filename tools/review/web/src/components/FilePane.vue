@@ -36,7 +36,7 @@ const failure = ref('')
 /* The editor is attached to the rendered file rather than replacing it, so a
  * file reads the same whether or not it is being edited. */
 function attachEditor() {
-  if (!instance.value || detach.value) return
+  if (!props.editing || !instance.value || detach.value) return
   editor.value = new Editor('file', {
     onChange: () => emit('change', editor.value?.getFile()?.contents ?? ''),
   })
@@ -98,7 +98,7 @@ async function draw() {
       lineAnnotations: annotations(),
       forceRender: true,
     })
-    if (wasEditing || props.editing) attachEditor()
+    if (props.editing) attachEditor()
   } catch (error) {
     failure.value = error instanceof Error ? error.message : String(error)
   }

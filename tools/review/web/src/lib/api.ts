@@ -130,21 +130,28 @@ export const notes = {
     }
   },
   async add(note: Record<string, unknown>): Promise<void> {
-    await fetch(NOTES_API, {
+    const response = await fetch(NOTES_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(note),
     })
+    await checkNoteResponse(response)
   },
   async resolve(id: number): Promise<void> {
-    await fetch(`${NOTES_API}/${id}`, {
+    const response = await fetch(`${NOTES_API}/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resolved: true }),
     })
+    await checkNoteResponse(response)
   },
 }
 
 export function isReachable(): Promise<boolean> {
   return fetch(`${REVIEW_API}/health`).then((r) => r.ok).catch(() => false)
+}
+
+async function checkNoteResponse(response: Response): Promise<void> {
+  const payload = await response.json()
+  if (!response.ok || payload.error) throw new Error(payload.error ?? response.statusText)
 }
