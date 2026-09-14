@@ -91,6 +91,5 @@ bundle to test the installed layout.
 - [`AGENTS.md`](AGENTS.md): repository work and review contract.
 
 Work is tracked in the Bunko project in Linear, starting with NAK-913. Kaicho is
-the NakamaDevs governance source. Implement changes in issue-linked Herdr
-worktrees and review through pull requests. This initial extraction is under
-review; no stable release has been published yet.
+the NakamaDevs governance source. Follow the delivery routes in `AGENTS.md`.
+Release publication and consumer adoption are tracked in NAK-951.
