@@ -48,3 +48,37 @@ class ChangesTests(unittest.TestCase):
         self.assertEqual(sides['new'], sides['old'])
         self.git('commit', '-qm', 'rename')
         self.assertEqual(self.api.sides('repo', 'HEAD~1', 'HEAD', name), sides)
+
+    def test_tree_and_status_preserve_literal_paths(self):
+        names = ['café.md', 'quote".md', 'tab\tline\n.md', 'literal -> name.md']
+        for name in names:
+            (self.root / name).write_text('contents\n')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'unusual paths')
+        for revision in ['WORKTREE', 'HEAD']:
+            paths = self.api.tree('repo', revision)
+            for name in names:
+                self.assertIn(name, paths)
+                self.assertEqual(self.api.blob('repo', revision, name), 'contents\n')
+        for name in names:
+            (self.root / name).write_text('changed\n')
+        renamed = 'renamed\tfile\n.md'
+        self.git('mv', 'old name.txt', renamed)
+        statuses = {r['path']: r['status'] for r in self.api.status('repo')}
+        for name in names:
+            self.assertEqual(statuses[name], 'modified')
+        self.assertEqual(statuses[renamed], 'renamed')
+
+    def test_binary_sides_do_not_decode_blobs(self):
+        (self.root / 'binary').write_bytes(b'\x00\xff')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'binary')
+        (self.root / 'binary').write_bytes(b'\x00\xfe')
+        sides = self.api.sides('repo', None, None, 'binary')
+        self.assertEqual(sides['old'], 'Binary file')
+        self.assertEqual(sides['new'], 'Binary file')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'change binary')
+        self.assertEqual(self.api.sides('repo', 'HEAD~1', 'HEAD', 'binary'), sides)
+        with self.assertRaisesRegex(self.api.GitError, 'not text'):
+            self.api.blob('repo', 'HEAD', 'binary')

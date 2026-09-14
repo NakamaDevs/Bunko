@@ -78,3 +78,25 @@ test('failed note writes retain the draft and report the error', async () => {
   assert.equal(a.draft.value, '')
   assert.equal(a.pendingLine.value, null)
 })
+
+
+test('diff sides ignore out-of-order responses and changed review context', async () => {
+  const a = app(); a.repo.value = 'A'
+  const pending = []
+  globalThis.fetch = url => String(url).includes('/sides')
+    ? new Promise(resolve => pending.push(resolve))
+    : Promise.resolve(json({ branches: [], notes: [], files: [], paths: [], status: [] }))
+  const first = a.open('one.md')
+  const second = a.open('two.md')
+  pending[1](json({ old: 'two old', new: 'two new' })); await second
+  pending[0](json({ old: 'one old', new: 'one new' })); await first
+  assert.equal(a.selected.value, 'two.md')
+  assert.equal(a.newText.value, 'two new')
+  for (const field of ['repo', 'base', 'head', 'mode']) {
+    const request = a.open('two.md')
+    assert.equal(a.newText.value, null)
+    a[field].value = 'changed-' + field
+    pending.at(-1)(json({ old: 'stale', new: 'stale' })); await request
+    assert.equal(a.newText.value, null)
+  }
+})

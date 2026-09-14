@@ -165,8 +165,11 @@ def changed_files(name: str, base: str | None, head: str | None) -> list[dict]:
 
 
 def sides(name: str, base: str | None, head: str | None, file_path: str) -> dict:
-    old_path = next((row["old_path"] for row in changed_files(name, base, head)
-                     if row["path"] == file_path), file_path)
+    row = next((row for row in changed_files(name, base, head)
+                if row["path"] == file_path), None)
+    if row and row["binary"]:
+        return {"path": file_path, "old": "Binary file", "new": "Binary file"}
+    old_path = row["old_path"] if row else file_path
     old_revision = head or "HEAD"
     if base and head:
         old_revision = git(repository(name), "merge-base", base, head).strip()
@@ -192,8 +195,8 @@ def tree(name: str, revision: str) -> list[str]:
         raise GitError("Invalid revision.")
     path = repository(name)
     if revision == "WORKTREE":
-        return sorted(set(git(path, "ls-files", "--cached", "--others", "--exclude-standard").splitlines()))
-    return [line for line in git(path, "ls-tree", "-r", "--name-only", revision).splitlines() if line]
+        return sorted(set(filter(None, git(path, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0"))))
+    return [line for line in git(path, "ls-tree", "-r", "--name-only", "-z", revision).split("\0") if line]
 
 
 # The working tree is not a revision, so the UI asks for it by this name.
@@ -219,6 +222,8 @@ def blob(name: str, revision: str, file_path: str) -> str | None:
 
     try:
         return git(path, "show", f"{revision}:{file_path}")
+    except UnicodeDecodeError:
+        raise GitError("This file is not text.") from None
     except GitError:
         # A file added in this range has no contents on the old side.
         return None
@@ -235,15 +240,16 @@ def status(name: str) -> list[dict]:
     """Working-tree status, so the file tree can mark what changed."""
     path = repository(name)
     rows = []
-    for line in git(path, "status", "--porcelain").splitlines():
-        if len(line) < 4:
+    records = iter(git(path, "status", "--porcelain", "-z").split("\0"))
+    for record in records:
+        if len(record) < 4:
             continue
-        code = line[0] if line[0] != " " else line[1]
-        file_path = line[3:]
-        # A rename is reported as "old -> new"; decorate the destination.
-        if " -> " in file_path:
-            file_path = file_path.split(" -> ", 1)[1]
-        rows.append({"path": file_path.strip('"'), "status": _STATUS.get(code, "modified")})
+        code = record[0] if record[0] != " " else record[1]
+        file_path = record[3:]
+        # With -z, rename/copy records contain destination then source.
+        if "R" in record[:2] or "C" in record[:2]:
+            next(records)
+        rows.append({"path": file_path, "status": _STATUS.get(code, "modified")})
     return rows
 
 
