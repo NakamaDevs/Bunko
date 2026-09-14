@@ -13,6 +13,7 @@ const databasePath = required('BUNKO_DATABASE');
 const domain = required('BUNKO_DOMAIN');
 const port = Number(required('BUNKO_PORT'));
 const dev = process.env.BUNKO_DEV_TOOLS === '1';
+const notesUiPort = process.env.BUNKO_NOTES_UI_PORT ?? '0';
 const builder = await createBuilder();
 const database = await builder.addDuckDB('annotations', {
   databasePath: dirname(databasePath), databaseFileName: basename(databasePath),
@@ -26,6 +27,7 @@ const python = (name: string, script: string, externalPort?: number) => builder.
   .withHttpEndpoint({ name: 'http', env: 'PORT', ...(externalPort ? { port: externalPort } : {}) });
 const notes = await python('notes', 'docs/annotations/service.py')
   .withReference(database).withEnvironment('BUNKO_DATABASE', databasePath)
+  .withEnvironment('NOTES_UI_PORT', notesUiPort)
   .withHttpHealthCheck({ endpointName: 'http', path: '/notes' });
 const api = await python('review-api', 'review/api/service.py')
   .withHttpHealthCheck({ endpointName: 'http', path: '/api/health' });
@@ -35,6 +37,7 @@ const review = dev
   ? await builder.addExecutable('review-web', 'npm', './tools/review/web', ['run', 'dev'])
     .withEnvironment('BUNKO_DOMAIN', domain).withEnvironment('BUNKO_PORT', String(port))
     .withEnvironment('BUNKO_STATE', state).withEnvironment('BUNKO_ROOT', root)
+    .withEnvironment('BUNKO_CONFIG', config)
     .withHttpEndpoint({ name: 'http', env: 'PORT' })
     .withHttpHealthCheck({ endpointName: 'http', path: '/' })
   : await python('review-web', 'review/static.py')

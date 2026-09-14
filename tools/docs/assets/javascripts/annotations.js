@@ -567,10 +567,80 @@
     reload: function () { return load(); }
   };
 
+  /* A page containing <div data-bunko-notes></div> lists every open note, live,
+   * grouped by the page or file it belongs to. */
+  function renderIndex(container, reachable) {
+    container.textContent = "";
+    if (!reachable) {
+      container.appendChild(paragraph("The notes service is not running. Start Bunko to list open notes."));
+      return;
+    }
+    if (!allNotes.length) {
+      container.appendChild(paragraph("No open notes. Select some text on any page to add one."));
+      return;
+    }
+    var groups = {};
+    var order = [];
+    var counts = {};
+    allNotes.forEach(function (note) {
+      var key = titleFor(note) + " " + (isRepositoryNote(note) ? "" : note.page_path);
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(note);
+      counts[note.kind] = (counts[note.kind] || 0) + 1;
+    });
+    var summary = Object.keys(counts).sort().map(function (kind) { return counts[kind] + " " + kind; }).join(", ");
+    container.appendChild(paragraph(allNotes.length + " open (" + summary + ") across " + order.length +
+      (order.length === 1 ? " page." : " pages.")));
+    order.sort().forEach(function (key) {
+      var first = groups[key][0];
+      var heading = document.createElement("h2");
+      if (isRepositoryNote(first)) {
+        heading.textContent = titleFor(first);
+      } else {
+        var link = document.createElement("a");
+        link.href = first.page_path;
+        link.textContent = titleFor(first);
+        heading.appendChild(link);
+      }
+      container.appendChild(heading);
+      var table = document.createElement("table");
+      var header = table.createTHead().insertRow();
+      ["Kind", "Note", "Block"].forEach(function (label) {
+        var cell = document.createElement("th");
+        cell.textContent = label;
+        header.appendChild(cell);
+      });
+      var body = table.createTBody();
+      groups[key].forEach(function (note) {
+        var preview = (note.block_preview || "").slice(0, 90);
+        var where = isRepositoryNote(note) ? "L" + (note.line_number || "")
+          : (note.heading ? note.heading + " — " : "") + preview + (preview ? "…" : "");
+        var row = body.insertRow();
+        [note.kind, note.body, where].forEach(function (text) { row.insertCell().textContent = text; });
+      });
+      var wrapper = document.createElement("div");
+      wrapper.className = "md-typeset__table";
+      wrapper.appendChild(table);
+      container.appendChild(wrapper);
+    });
+  }
+
+  function titleFor(note) {
+    return isRepositoryNote(note) ? note.repo + " · " + (note.file_path || "") : note.page_title || note.page_path;
+  }
+
+  function paragraph(text) {
+    var element = document.createElement("p");
+    element.textContent = text;
+    return element;
+  }
+
   /* The service is optional: without it the page stays exactly as it is. */
   load().then(function (reachable) {
     window.SDLCNotes.reachable = reachable;
     document.dispatchEvent(new CustomEvent("sdlc-notes-ready", { detail: { reachable: reachable } }));
     if (reachable) start();
+    var index = document.querySelector("[data-bunko-notes]");
+    if (index) (reachable ? loadAll() : Promise.resolve()).then(function () { renderIndex(index, reachable); });
   });
 })();

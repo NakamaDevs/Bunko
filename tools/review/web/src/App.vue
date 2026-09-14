@@ -17,6 +17,8 @@ import {
   type StatusEntry,
 } from '@/lib/api'
 
+// The served page carries the consumer's configured title.
+const title = typeof document === 'undefined' ? 'Bunko Review' : document.title || 'Bunko Review'
 const repositories = ref<Repository[]>([])
 const repo = ref('')
 const branches = ref<Ref[]>([])
@@ -326,7 +328,7 @@ watch([base, head], () => {
 <template>
   <div class="min-h-screen">
     <header class="flex flex-wrap items-center gap-4 border-b border-rule bg-paper px-6 py-3">
-      <span class="font-display text-lg font-extrabold tracking-tight text-ink">Bunko Review</span>
+      <span class="font-display text-lg font-extrabold tracking-tight text-ink">{{ title }}</span>
 
       <select
         v-model="repo"
