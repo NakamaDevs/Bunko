@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { basename, dirname } from 'node:path';
 import { createBuilder, EndpointProperty } from './.aspire/modules/aspire.mjs';
 
@@ -31,8 +32,14 @@ const notes = await python('notes', 'docs/annotations/service.py')
   .withHttpHealthCheck({ endpointName: 'http', path: '/notes' });
 const api = await python('review-api', 'review/api/service.py')
   .withHttpHealthCheck({ endpointName: 'http', path: '/api/health' });
-const docs = await python('docs', 'docs/serve.py')
-  .withHttpHealthCheck({ endpointName: 'http', path: '/' });
+let renderer = python('docs', 'docs/serve.py');
+// site.environment forwards named variables, such as macro settings, to the renderer.
+const forwarded: string[] = JSON.parse(readFileSync(config, 'utf-8')).site?.environment ?? [];
+for (const name of forwarded) {
+  const value = process.env[name];
+  if (value !== undefined) renderer = renderer.withEnvironment(name, value);
+}
+const docs = await renderer.withHttpHealthCheck({ endpointName: 'http', path: '/' });
 const review = dev
   ? await builder.addExecutable('review-web', 'npm', './tools/review/web', ['run', 'dev'])
     .withEnvironment('BUNKO_DOMAIN', domain).withEnvironment('BUNKO_PORT', String(port))
