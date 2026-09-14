@@ -1,7 +1,7 @@
 schema_version = 1
 repository = "NakamaDevs/Bunko"
 kind = "single"
-governance_version = "2.0.0"
+governance_version = "2.1.0"
 
 [skills]
 bundle = "NakamaDevs/skills"
@@ -29,3 +29,6 @@ guild_id = "875555017451507722"
 project_thread_id = ""
 operations_channel_id = "1533964854078214175"
 operator_role_id = "1320910752466468874"
+
+[delivery]
+mode = "solo"
