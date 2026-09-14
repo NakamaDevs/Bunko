@@ -22,4 +22,26 @@ Install the repository's configured hooks (for example `prek install --hook-type
 Pinned source: Kaicho `91ec23b858c2d6aa74a987901592c7493259e89d`. Tracking: NAK-946.
 <!-- /kaicho-delivery-v2.1 -->
 
-# Repository instructions
+# Bunko agent guide
+
+Bunko (文庫) is a private local documentation and repository review application.
+Start with the pinned [Kaicho mirror](.nakama/kaicho/engineering-v2.md).
+Use team `NAK` and project `Bunko` in Linear.
+
+Create or locate an issue before editing. Keep one issue, owner, and isolated
+Herdr worktree for each reviewable change. New branches use
+`<type>/NAK-123-short-description`. Keep the primary checkout on `main`.
+Record stack parents in the issue and any pull request. Use the delivery routes
+above; solo work does not require a pull request.
+
+Keep workspace content and writable state outside installed releases. Resolve
+repository paths relative to the explicit workspace configuration. Bind services
+to loopback. Keep notes in a single-writer database. Never push or change branches
+from the reviewer. Preserve exact dependency locks and release checksums.
+
+Run focused tests, then `mise run verify` before pushing, unless an explicit
+owner override defines another validation scope. Record actual validation and
+review results. Use Conventional Commits and the approved identity in private
+Git configuration. Keep incomplete PRs draft. Review the complete diff and
+address findings with evidence. Apply CI and approval gates for the selected
+delivery route. Do not replace a released artifact.

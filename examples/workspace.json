@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "Bunko example",
+  "repositories": {"example": "."},
+  "documentation": [
+    {"id": "guide", "label": "Guide", "repository": "example", "path": "guide"}
+  ]
+}
