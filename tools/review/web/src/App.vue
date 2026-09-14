@@ -206,10 +206,18 @@ async function loadChanges() {
   if (files.value.length) await open(files.value[0].path)
 }
 
+let sideRequest = 0
+const diffContext = () => JSON.stringify([repo.value, base.value, head.value, selected.value, mode.value])
+
 async function open(path: string) {
   selected.value = path
   pendingLine.value = null
+  oldText.value = null
+  newText.value = null
+  const request = ++sideRequest
+  const requested = diffContext()
   const payload = await guard(() => review.sides(repo.value, path, base.value, head.value))
+  if (request !== sideRequest || requested !== diffContext()) return
   oldText.value = payload?.old ?? null
   newText.value = payload?.new ?? null
 }
