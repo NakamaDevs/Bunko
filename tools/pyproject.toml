@@ -3,7 +3,7 @@ name = "bunko-workspace"
 version = "0.1.0"
 license = "MIT"
 requires-python = ">=3.12,<3.13"
-dependencies = ["aiohttp>=3.12,<4", "duckdb==1.4.2", "zensical==0.0.58", "mkdocs-macros-plugin==1.5.0", "pyyaml>=6,<7", "markdown>=3.7,<4"]
+dependencies = ["aiohttp>=3.12,<4", "duckdb==1.5.5", "zensical==0.0.58", "mkdocs-macros-plugin==1.5.0", "pyyaml>=6,<7", "markdown>=3.7,<4"]
 
 [tool.uv]
 package = false
