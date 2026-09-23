@@ -148,3 +148,7 @@ bundle to test the installed layout.
 Work is tracked in the Bunko project in Linear, starting with NAK-913. Kaicho is
 the NakamaDevs governance source. Follow the delivery routes in `AGENTS.md`.
 Release publication and consumer adoption are tracked in NAK-951.
+
+## License
+
+Bunko is available under the [MIT License](LICENSE).
