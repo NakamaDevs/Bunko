@@ -20,7 +20,7 @@
     "watch": "npm run aspire:dev"
   },
   "dependencies": {
-    "vscode-jsonrpc": "^8.2.0",
+    "vscode-jsonrpc": "^9.0.2",
     "@pierre/diffs": "^1.4.2"
   },
   "devDependencies": {
