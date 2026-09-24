@@ -61,6 +61,11 @@ resolve inside the selected repository. Omit `runtime` for isolated defaults
 based on the configuration's absolute path. Keep `_build/` ignored by Git.
 The reviewer lists only configured Git checkouts. Editing and committing are
 explicit UI actions; it does not push, switch branches, or rewrite history.
+It also lists the linked worktrees of those checkouts. Open one to review it
+like a repository. The **Worktrees** view marks each as missing, merged,
+squash-merged, remote deleted, uncommitted, or active. It compares against
+`origin/HEAD`, `main`, `master`, `dev`, and `develop` as of the last fetch, and
+offers cleanup commands to copy. The reviewer never runs them.
 Set `runtime.notes_ui_port` to serve DuckDB's UI for the notes database from
 the notes process; the default `0` leaves it off.
 

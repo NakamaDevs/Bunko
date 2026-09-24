@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { GitBranch, RefreshCw, Columns2, Rows2, Moon, Sun, FileDiff, FolderTree, Pencil, GitCommitHorizontal } from 'lucide-vue-next'
+import { GitBranch, RefreshCw, Columns2, Rows2, Moon, Sun, FileDiff, FolderTree, Pencil, GitCommitHorizontal, GitFork } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import DiffPane from '@/components/DiffPane.vue'
 import FileTreePane from '@/components/FileTreePane.vue'
 import FilePane from '@/components/FilePane.vue'
+import WorktreesPane from '@/components/WorktreesPane.vue'
 import {
   review,
   notes,
@@ -15,11 +16,15 @@ import {
   type Ref,
   type Repository,
   type StatusEntry,
+  type Worktree,
 } from '@/lib/api'
 
 // The served page carries the consumer's configured title.
 const title = typeof document === 'undefined' ? 'Bunko Review' : document.title || 'Bunko Review'
 const repositories = ref<Repository[]>([])
+/* Linked worktrees of every repository. Each id (`repo@slug`) works as a repository name. */
+const worktrees = ref<Worktree[]>([])
+const worktreesLoading = ref(false)
 const repo = ref('')
 const branches = ref<Ref[]>([])
 const base = ref('')
@@ -40,8 +45,9 @@ const draft = ref('')
 const draftKind = ref('NOTE')
 const KINDS = ['NOTE', 'TODO', 'QUESTION', 'FIXME']
 
-/* "changes" reviews a range; "files" browses the whole revision. */
-const mode = ref<'changes' | 'files'>('changes')
+/* "changes" reviews a range; "files" browses the whole revision; "worktrees"
+ * lists every linked worktree and whether it can be removed. */
+const mode = ref<'changes' | 'files' | 'worktrees'>('changes')
 const treePaths = ref<string[]>([])
 const treeStatus = ref<StatusEntry[]>([])
 const fileText = ref<string | null>(null)
@@ -78,7 +84,21 @@ function lineOf(contents: string, match: string): number {
   return 0
 }
 
-const current = computed(() => repositories.value.find((entry) => entry.name === repo.value))
+const current = computed(() => {
+  const found = repositories.value.find((entry) => entry.name === repo.value)
+  if (found) return found
+  const worktree = worktrees.value.find((entry) => entry.id === repo.value)
+  return worktree && { head: worktree.branch ?? `detached at ${worktree.head.slice(0, 7)}` }
+})
+
+/* The dropdown offers the worktrees that still have a working copy, under their repository. */
+const worktreeGroups = computed(() => {
+  const groups = new Map<string, Worktree[]>()
+  for (const entry of worktrees.value) {
+    if (entry.exists) groups.set(entry.repository, [...(groups.get(entry.repository) ?? []), entry])
+  }
+  return [...groups.entries()]
+})
 const comparing = computed(() => Boolean(base.value && head.value))
 
 /** Comments still open on the file being viewed. */
@@ -113,8 +133,31 @@ async function loadRepositories() {
   }
 }
 
+/* Reading every worktree takes a few seconds, so it never blocks the page. */
+async function loadWorktrees() {
+  worktreesLoading.value = true
+  try {
+    worktrees.value = (await review.worktrees()).worktrees ?? []
+  } catch (error) {
+    problem.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    worktreesLoading.value = false
+  }
+}
+
+async function openWorktree(id: string) {
+  mode.value = 'changes'
+  if (repo.value === id) await loadRepository()
+  else repo.value = id
+}
+
+function refresh() {
+  if (mode.value === 'worktrees') void loadWorktrees()
+  else void loadRepository()
+}
+
 async function loadRepository() {
-  if (!repo.value) return
+  if (!repo.value || mode.value === 'worktrees') return
   files.value = []
   treePaths.value = []
   selected.value = ''
@@ -194,11 +237,15 @@ function discardDrafts() {
   if (selected.value) openFile(selected.value)
 }
 
-async function switchMode(next: 'changes' | 'files') {
+async function switchMode(next: 'changes' | 'files' | 'worktrees') {
   if (mode.value === next) return
+  const previous = mode.value
   mode.value = next
   selected.value = ''
   fileText.value = null
+  if (next === 'worktrees') return loadWorktrees()
+  // The repository may have changed while the worktree list was shown.
+  if (previous === 'worktrees') return loadRepository()
   await (next === 'files' ? loadTree() : loadChanges())
 }
 
@@ -278,7 +325,8 @@ async function openFromQuery() {
   const query = new URLSearchParams(location.search)
   const wanted = query.get('repo')
   const path = query.get('path')
-  if (wanted && repositories.value.some((entry) => entry.name === wanted)) repo.value = wanted
+  // A worktree id is checked by the API; the worktree list may still be loading.
+  if (wanted && (wanted.includes('@') || repositories.value.some((entry) => entry.name === wanted))) repo.value = wanted
   if (query.get('edit') === '1') editing.value = true
   if (!path) return false
 
@@ -302,6 +350,7 @@ onMounted(async () => {
   dark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   document.documentElement.classList.toggle('dark', dark.value)
   await loadRepositories()
+  void loadWorktrees()
   if (!(await openFromQuery())) await loadRepository()
 })
 
@@ -318,6 +367,7 @@ watch(base, () => { if (!base.value) head.value = '' }, { flush: 'sync' })
 watch([base, head], () => {
   editing.value = false
   fileContext.value = ''
+  if (mode.value === 'worktrees') return
   if (mode.value === 'files') {
     void loadTree()
     if (selected.value) void openFile(selected.value)
@@ -335,12 +385,19 @@ watch([base, head], () => {
         class="kicker border border-rule bg-surface px-2 py-1.5 text-ink"
         aria-label="Repository"
       >
-        <option v-for="entry in repositories" :key="entry.name" :value="entry.name">
-          {{ entry.name }}{{ entry.dirty ? ' •' : '' }}
-        </option>
+        <optgroup label="Repositories">
+          <option v-for="entry in repositories" :key="entry.name" :value="entry.name">
+            {{ entry.name }}{{ entry.dirty ? ' •' : '' }}
+          </option>
+        </optgroup>
+        <optgroup v-for="[name, entries] in worktreeGroups" :key="name" :label="`${name} worktrees`">
+          <option v-for="entry in entries" :key="entry.id" :value="entry.id">
+            {{ name }} › {{ entry.slug }}{{ entry.changed_files ? ' •' : '' }}
+          </option>
+        </optgroup>
       </select>
 
-      <div class="flex items-center gap-2">
+      <div v-if="mode !== 'worktrees'" class="flex items-center gap-2">
         <GitBranch class="size-3.5 text-faint" />
         <select v-model="base" class="kicker border border-rule bg-surface px-2 py-1.5 text-ink" aria-label="Base">
           <option value="">working tree vs HEAD</option>
@@ -359,8 +416,8 @@ watch([base, head], () => {
       </div>
 
       <div class="ml-auto flex items-center gap-2">
-        <Button variant="ghost" size="sm" :disabled="loading" @click="loadRepository">
-          <RefreshCw class="size-3.5" :class="loading && 'animate-spin'" />
+        <Button variant="ghost" size="sm" :disabled="loading || worktreesLoading" @click="refresh">
+          <RefreshCw class="size-3.5" :class="(loading || worktreesLoading) && 'animate-spin'" />
           Refresh
         </Button>
         <Button
@@ -378,6 +435,16 @@ watch([base, head], () => {
         >
           <FolderTree class="size-3.5" />
           Files
+        </Button>
+        <Button
+          :variant="mode === 'worktrees' ? 'default' : 'ghost'"
+          size="sm"
+          title="Every linked worktree, and which ones can be removed"
+          @click="switchMode('worktrees')"
+        >
+          <GitFork class="size-3.5" />
+          Worktrees
+          <span v-if="worktrees.length" class="font-mono text-[11px] opacity-80">{{ worktrees.length }}</span>
         </Button>
         <Button
           v-if="mode === 'files'"
@@ -402,7 +469,14 @@ watch([base, head], () => {
 
     <p v-if="problem" class="border-b border-rule bg-surface px-6 py-2 text-sm text-stop">{{ problem }}</p>
 
-    <div class="grid gap-0 lg:grid-cols-[320px_minmax(0,1fr)]">
+    <WorktreesPane
+      v-if="mode === 'worktrees'"
+      :worktrees="worktrees"
+      :loading="worktreesLoading"
+      @open="openWorktree"
+    />
+
+    <div v-else class="grid gap-0 lg:grid-cols-[320px_minmax(0,1fr)]">
       <aside class="border-r border-rule bg-paper">
         <div class="flex items-baseline justify-between border-b border-rule px-4 py-3">
           <span class="kicker">{{ mode === 'files' ? 'All files' : 'Changed files' }}</span>

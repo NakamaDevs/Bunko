@@ -17,7 +17,7 @@ const result = await build({
   plugins: [{ name: 'render-stubs', setup(build) {
     build.onResolve({ filter: /^(vue)$/ }, () => ({ path: import.meta.resolve('vue'), external: true }))
     build.onResolve({ filter: /(\.vue$|components\/ui\/|lucide-vue-next)/ }, args => ({ path: args.path, namespace: 'stub' }))
-    build.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: 'export default {}; export const Button={},Badge={},GitBranch={},RefreshCw={},Columns2={},Rows2={},Moon={},Sun={},FileDiff={},FolderTree={},Pencil={},GitCommitHorizontal={};' }))
+    build.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: 'export default {}; export const Button={},Badge={},GitBranch={},RefreshCw={},Columns2={},Rows2={},Moon={},Sun={},FileDiff={},FolderTree={},Pencil={},GitCommitHorizontal={},GitFork={};' }))
   } }],
 })
 globalThis.location = { origin: 'http://review.localhost:8870' }

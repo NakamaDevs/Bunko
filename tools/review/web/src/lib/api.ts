@@ -23,6 +23,35 @@ export interface Repository {
   changed_files: number
 }
 
+/** How far a worktree is from being safe to remove. See the API for the rules. */
+export type WorktreeState = 'missing' | 'merged' | 'integrated' | 'gone' | 'dirty' | 'active'
+
+export interface Worktree {
+  /** `repository@slug`: usable wherever a repository name is. */
+  id: string
+  repository: string
+  slug: string
+  path: string
+  head: string
+  branch: string | null
+  exists: boolean
+  locked: boolean
+  state: WorktreeState
+  reason: string
+  can_prune: boolean
+  /** Commands to copy. The reviewer never runs them. */
+  cleanup: string[]
+  default_ref: string | null
+  merged_into: string | null
+  upstream: string | null
+  upstream_gone: boolean
+  changed_files: number
+  ahead: number | null
+  behind: number | null
+  last_commit_at: number | null
+  last_commit_subject: string | null
+}
+
 export interface ChangedFile {
   path: string
   added: number | null
@@ -77,6 +106,7 @@ async function get<T>(base: string, path: string, params: Record<string, string 
 
 export const review = {
   repositories: () => get<{ repositories: Repository[] }>(REVIEW_API, '/repos'),
+  worktrees: () => get<{ worktrees: Worktree[] }>(REVIEW_API, '/worktrees'),
   refs: (repo: string) =>
     get<{ branches: Ref[]; commits: Commit[]; head: string }>(REVIEW_API, `/repos/${repo}/refs`),
   changes: (repo: string, base?: string, head?: string) =>

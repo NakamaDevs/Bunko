@@ -1,7 +1,7 @@
 """Read-only Git API for the local code review tool.
 
-Serves the repositories already checked out under ``repos/`` so they can be
-browsed, diffed, and commented on locally, without pushing a branch or opening
+Serves the repositories already checked out under ``repos/``, and their linked
+worktrees, so they can be browsed, diffed, and commented on locally, without pushing a branch or opening
 anything on GitHub. Comments are not stored here: the documentation notes
 service owns them, so one database holds both prose notes and code comments.
 
@@ -12,7 +12,8 @@ rewritten.
 
 Every Git invocation is built from an argument list, never a shell string.
 Repository names are resolved through the Aspire source catalogue rather than
-taken from the request.
+taken from the request, and worktrees through Git's own worktree list. The
+worktree overview suggests cleanup commands but never runs them.
 
 The service binds to the loopback interface and performs no authentication. It
 exposes source code, so do not expose it beyond this machine.
@@ -22,8 +23,10 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -57,10 +60,18 @@ def repositories() -> dict[str, Path]:
 
 
 def repository(name: str) -> Path:
+    """A catalogue repository, or one of its linked worktrees as ``repo@worktree``."""
+    parent, _, slug = name.partition("@")
     try:
-        return repositories()[name]
+        path = repositories()[parent]
     except KeyError:
         raise GitError(f"Unknown repository {name!r}.") from None
+    if not slug:
+        return path
+    for entry in _linked_worktrees(parent, path):
+        if entry["slug"] == slug and entry["exists"]:
+            return Path(entry["path"])
+    raise GitError(f"Unknown worktree {name!r}.")
 
 
 def git(path: Path, *args: str) -> str:
@@ -114,6 +125,199 @@ def refs(name: str) -> dict:
         ("hash", "author", "date", "subject"),
     )
     return {"branches": branches, "commits": commits, "head": overview(name)["head"]}
+
+
+def _linked_worktrees(name: str, path: Path) -> list[dict]:
+    """The linked worktrees Git records for one repository, main checkout excluded.
+
+    Each gets a slug from its directory name, unique within the repository, so
+    the UI can address it as ``repo@slug`` without sending a path.
+    """
+    entries, current = [], {}
+    for line in git(path, "worktree", "list", "--porcelain").splitlines() + [""]:
+        if not line:
+            if current:
+                entries.append(current)
+            current = {}
+            continue
+        key, _, value = line.partition(" ")
+        current[key] = value or True
+    linked, slugs = [], set()
+    for entry in entries[1:]:
+        if entry.get("bare"):
+            continue
+        worktree_path = Path(entry["worktree"])
+        # Some tools nest a checkout named like the repository in a task directory.
+        base = worktree_path.name if worktree_path.name != path.name else worktree_path.parent.name
+        slug = base
+        suffix = 2
+        while slug in slugs:
+            slug, suffix = f"{base}-{suffix}", suffix + 1
+        slugs.add(slug)
+        branch = entry.get("branch")
+        linked.append({
+            "id": f"{name}@{slug}",
+            "repository": name,
+            "slug": slug,
+            "path": str(worktree_path),
+            "head": entry.get("HEAD", ""),
+            "branch": branch.removeprefix("refs/heads/") if isinstance(branch, str) else None,
+            "exists": worktree_path.is_dir(),
+            "locked": "locked" in entry,
+        })
+    return linked
+
+
+def _ref_exists(path: Path, ref: str) -> bool:
+    try:
+        git(path, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        return True
+    except GitError:
+        return False
+
+
+def _integration_refs(path: Path) -> list[str]:
+    """The branches merged work lands on, as of the last fetch; the default first.
+
+    ``origin/HEAD`` names the default branch, but some repositories merge pull
+    requests into a ``dev`` branch and release to ``main`` later, so work merged
+    into any of the conventional branches counts as merged.
+    """
+    refs = []
+    try:
+        refs.append(git(path, "symbolic-ref", "--short", "refs/remotes/origin/HEAD").strip())
+    except GitError:
+        pass
+    for candidate in ("origin/main", "origin/master", "origin/dev", "origin/develop"):
+        if candidate not in refs and _ref_exists(path, candidate):
+            refs.append(candidate)
+    if not refs:
+        refs = [candidate for candidate in ("main", "master") if _ref_exists(path, candidate)][:1]
+    return refs
+
+
+def _upstreams(path: Path) -> dict[str, dict]:
+    rows = _records(
+        git(path, "for-each-ref", "--format=%(refname:short)\x1f%(upstream:short)\x1f%(upstream:track)\x1e",
+            "refs/heads"),
+        ("branch", "upstream", "track"),
+    )
+    return {row["branch"]: row for row in rows}
+
+
+# Worktree states, from most to least urgent to act on.
+#   missing     Git still records it, but the directory is gone: `git worktree prune`.
+#   merged      Clean, and every commit is already on an integration branch.
+#   integrated  Clean; the commits differ, but their changes are already on an
+#               integration branch (a squash or rebase merge).
+#   gone        Clean, but the remote branch was deleted: probably merged on GitHub.
+#   dirty       Uncommitted changes. Never suggest removal.
+#   active      Clean, with commits not yet on an integration branch.
+_PRUNABLE = {"missing", "merged", "integrated"}
+
+
+def _describe(entry: dict, main_path: Path, targets: list[str], upstreams: dict[str, dict]) -> dict:
+    head, branch = entry["head"], entry["branch"]
+    default = targets[0] if targets else None
+    upstream = upstreams.get(branch or "", {})
+    info = {**entry, "default_ref": default, "merged_into": None,
+            "upstream": upstream.get("upstream") or None,
+            "upstream_gone": upstream.get("track") == "[gone]",
+            "changed_files": 0, "ahead": None, "behind": None,
+            "last_commit_at": None, "last_commit_subject": None}
+    if head:
+        try:
+            timestamp, _, subject = git(main_path, "log", "-1", "--format=%ct\x1f%s", head).strip().partition("\x1f")
+            info["last_commit_at"], info["last_commit_subject"] = int(timestamp), subject
+        except (GitError, ValueError):
+            pass
+    if not entry["exists"]:
+        return _classify(info, main_path, "missing", "The directory no longer exists.")
+    try:
+        status = git(Path(entry["path"]), "status", "--porcelain")
+        info["changed_files"] = len([line for line in status.splitlines() if line.strip()])
+    except GitError as error:
+        return _classify(info, main_path, "active", f"Git could not read it: {error}")
+    if default and head:
+        try:
+            behind, ahead = git(main_path, "rev-list", "--left-right", "--count", f"{default}...{head}").split()
+            info["ahead"], info["behind"] = int(ahead), int(behind)
+        except (GitError, ValueError):
+            pass
+    on_integration_branch = bool(branch and any(target.split("/", 1)[-1] == branch for target in targets))
+    if info["changed_files"]:
+        return _classify(info, main_path, "dirty", f"{info['changed_files']} uncommitted change(s).")
+    if on_integration_branch or info["ahead"] is None:
+        reason = "On an integration branch." if on_integration_branch else "No default branch to compare with."
+        return _classify(info, main_path, "active", reason)
+    for target in targets:
+        if (info["ahead"] == 0) if target == default else _is_ancestor(main_path, head, target):
+            info["merged_into"] = target
+            return _classify(info, main_path, "merged", f"Every commit is already on {target}.")
+    for target in targets:
+        if _changes_already_in(main_path, target, head):
+            info["merged_into"] = target
+            return _classify(info, main_path, "integrated",
+                             f"Its changes are already on {target} (squash or rebase merge).")
+    if info["upstream_gone"]:
+        return _classify(info, main_path, "gone",
+                         f"The remote branch was deleted; {info['ahead']} commit(s) are not on {default}.")
+    return _classify(info, main_path, "active", f"{info['ahead']} commit(s) not on {default}.")
+
+
+def _is_ancestor(path: Path, head: str, target: str) -> bool:
+    try:
+        git(path, "merge-base", "--is-ancestor", head, target)
+        return True
+    except GitError:
+        return False
+
+
+def _changes_already_in(path: Path, default: str, head: str) -> bool:
+    """Whether merging ``head`` into ``default`` would change nothing."""
+    try:
+        merged = git(path, "merge-tree", "--write-tree", "--no-messages", default, head).split("\n")[0].strip()
+        return merged == git(path, "rev-parse", f"{default}^{{tree}}").strip()
+    except GitError:
+        return False  # A conflict, or a Git without --write-tree: not provably merged.
+
+
+def _classify(info: dict, main_path: Path, state: str, reason: str) -> dict:
+    info["state"], info["reason"] = state, reason
+    info["can_prune"] = state in _PRUNABLE and not info["locked"]
+    info["cleanup"] = _cleanup(info, main_path) if info["can_prune"] else []
+    return info
+
+
+def _cleanup(info: dict, main_path: Path) -> list[str]:
+    """Commands the reader can copy. The reviewer itself never removes anything."""
+    main = shlex.quote(str(main_path))
+    if info["state"] == "missing":
+        return [f"git -C {main} worktree prune"]
+    commands = [f"git -C {main} worktree remove {shlex.quote(info['path'])}"]
+    if info["branch"]:
+        # `-d` refuses a squash-merged branch, whose commits are not on the default branch.
+        flag = "-d" if info["state"] == "merged" else "-D"
+        commands.append(f"git -C {main} branch {flag} {shlex.quote(info['branch'])}")
+    return commands
+
+
+def worktrees(only: str | None = None) -> list[dict]:
+    """Every linked worktree of the catalogue repositories, described for cleanup."""
+    found = repositories()
+    if only is not None and only not in found:
+        raise GitError(f"Unknown repository {only!r}.")
+    jobs = []
+    for name, path in found.items():
+        if only is not None and name != only:
+            continue
+        linked = _linked_worktrees(name, path)
+        if not linked:
+            continue
+        targets, upstreams = _integration_refs(path), _upstreams(path)
+        jobs.extend((entry, path, targets, upstreams) for entry in linked)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(lambda job: _describe(*job), jobs))
 
 
 def _range(base: str | None, head: str | None) -> list[str]:
@@ -358,6 +562,8 @@ class Handler(BaseHTTPRequestHandler):
             return {"ok": True}
         if parts == ["api", "repos"]:
             return {"repositories": [overview(name) for name in repositories()]}
+        if parts == ["api", "worktrees"]:
+            return {"worktrees": worktrees(query.get("repo"))}
         if len(parts) == 4 and parts[:2] == ["api", "repos"]:
             name, action = parts[2], parts[3]
             if action == "refs":
