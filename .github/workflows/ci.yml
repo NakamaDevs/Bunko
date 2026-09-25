@@ -45,4 +45,5 @@ jobs:
         env:
           PR_BASE_REVISION: ${{ github.event.pull_request.base.sha || 'HEAD^1' }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
+          PR_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login }}
           PR_TITLE: ${{ github.event.pull_request.title }}
