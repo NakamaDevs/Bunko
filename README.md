@@ -171,6 +171,13 @@ Bunko supports Linux lifecycle commands. Its Python packaging and web assets
 require no native macOS tools. The existing tool locks include Linux x64.
 The CI workload is `server-only`.
 
+CI pins [mise 2026.9.9](https://github.com/jdx/mise/releases/tag/v2026.9.9),
+released September 15, 2026, beyond the seven-day cooldown at adoption.
+Its Aqua backend resolves binary paths from the selected archive's libc variant.
+This supports the locked GNU archives for uv and prek. Mise 2026.7.17 searched
+for musl paths after extracting those GNU archives. CI checks both commands
+before dependency setup. Keep the existing lock URLs, checksums, and provenance.
+
 ## License
 
 Bunko is available under the [MIT License](LICENSE).
