@@ -178,6 +178,26 @@ This supports the locked GNU archives for uv and prek. Mise 2026.7.17 searched
 for musl paths after extracting those GNU archives. CI checks both commands
 before dependency setup. Keep the existing lock URLs, checksums, and provenance.
 
+### Dependency compatibility
+
+NAK-1011 keeps these dependency limits until their compatibility checks pass:
+
+| Dependency | Supported version | Requirement before a major update |
+| --- | --- | --- |
+| `vscode-jsonrpc` | 8.2.1 | Aspire must generate an import supported by JSON-RPC 9. |
+| TypeScript | 6.0.3 | ESLint and Vue tooling must support the TypeScript 7 compiler API. |
+| `@types/node` | 24.13.5 | Update the pinned Node 24 runtime before changing the types' major version. |
+
+The [Aspire transport generator](https://github.com/dotnet/aspire/blob/v13.5.4/src/Aspire.Hosting.CodeGeneration.TypeScript/Resources/transport.mts)
+still imports `vscode-jsonrpc/node.js`, which JSON-RPC 9 does not export.
+[Microsoft documents TypeScript 7 API compatibility limits](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/).
+[Vue tooling also requires compiler API compatibility](https://github.com/vuejs/language-tools/pull/6123).
+Do not patch generated Aspire files to hide this mismatch.
+
+Dependabot excludes only these incompatible version ranges. Compatible updates retain the seven-day cooldown.
+Remove the matching exclusion after toolchain regeneration, lint, typechecking, and full Ubuntu CI pass.
+CI consumes the committed locks; keep their versions and integrity hashes together.
+
 ## License
 
 Bunko is available under the [MIT License](LICENSE).

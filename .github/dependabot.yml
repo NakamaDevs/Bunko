@@ -6,12 +6,26 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    # NAK-1011: lift each range after its toolchain compatibility check passes.
+    ignore:
+      - dependency-name: vscode-jsonrpc
+        versions: [">=9.0.0"]
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
+      - dependency-name: "@types/node"
+        versions: [">=25.0.0"]
   - package-ecosystem: npm
     directory: /tools/review/web
     schedule:
       interval: weekly
     cooldown:
       default-days: 7
+    # Vue tooling needs the TypeScript API; Node types must match Node 24.
+    ignore:
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
+      - dependency-name: "@types/node"
+        versions: [">=25.0.0"]
   - package-ecosystem: uv
     directory: /tools
     schedule:
