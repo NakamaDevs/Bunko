@@ -217,6 +217,15 @@ def command_pr_branch(_: argparse.Namespace) -> None:
     if result.stdout.strip() != ".branch-policy":
         print("PR branch policy bootstrap: the base predates .branch-policy; enforcement begins after merge.")
         return
+    # NAK-1009: CI supplies the PR author directly from GitHub's event context.
+    # A branch prefix alone must never grant the Dependabot exception.
+    if os.environ.get("PR_AUTHOR_LOGIN") == "dependabot[bot]":
+        if not re.fullmatch(
+            r"dependabot/[a-z][a-z0-9_-]*/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*", head
+        ):
+            fail(f"Invalid Dependabot branch name: {head}")
+        print(f"PR branch policy verified: Dependabot branch {head}.")
+        return
     error = validate_branch_format(head, read_policy(repository_root()))
     if error:
         fail(error)
