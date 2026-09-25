@@ -154,6 +154,23 @@ Work is tracked in the Bunko project in Linear, starting with NAK-913. Kaicho is
 the NakamaDevs governance source. Follow the delivery routes in `AGENTS.md`.
 Release publication and consumer adoption are tracked in NAK-951.
 
+NAK-1009 authorizes Bunko CI to use the standard GitHub-hosted `ubuntu-24.04`
+x64 runner for regular changes and Dependabot. This repository-scoped exception
+supersedes self-hosted routing for `.github/workflows/ci.yml`, job `verify`.
+The job requires public repository visibility and keeps the existing fork guard.
+Private visibility skips the job before runner allocation.
+The runner policy rejects larger runners, custom labels, runner groups, and
+dynamic selection. Other jobs require a separate policy change.
+Action pins, permissions, and other governance checks still apply.
+
+[GitHub documents standard runners as free for public repositories](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+The [Ubuntu 24.04 image](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
+includes Python 3.12 and .NET SDKs for Aspire restore. The existing setup installs locked Node,
+uv, validation tools, and application dependencies. CI does not start containers.
+Bunko supports Linux lifecycle commands. Its Python packaging and web assets
+require no native macOS tools. The existing tool locks include Linux x64.
+The CI workload is `server-only`.
+
 ## License
 
 Bunko is available under the [MIT License](LICENSE).

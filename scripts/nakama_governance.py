@@ -565,11 +565,55 @@ def runner_policy_errors(path: str, text: str) -> list[str]:
     return errors
 
 
+# NAK-1009: owner-approved Bunko exception; pinned Kaicho mirrors stay unchanged.
+BUNKO_PUBLIC_CI_GUARD = (
+    "${{ github.event.repository.visibility == 'public' && "
+    "(github.event_name != 'pull_request' || "
+    "github.event.pull_request.head.repo.full_name == github.repository) }}"
+)
+
+
+def bunko_public_ci_errors(path: str, text: str) -> list[str]:
+    """Allow only Bunko's reviewed public CI job, never configurable runners."""
+    errors: list[str] = []
+    jobs = workflow_job_blocks(text)
+    # Keep the accepted YAML layout explicit: the stdlib job reader does not
+    # resolve flow mappings, aliases, or alternative indentation.
+    job_section = text.split("\njobs:\n", 1)[-1]
+    for line in job_section.splitlines():
+        if re.match(r"^  \S", line) and not re.fullmatch(
+            r"  [A-Za-z0-9_-]+:\s*(?:#.*)?", line
+        ) and not line.lstrip().startswith("#"):
+            errors.append(f"{path}: Bunko CI requires explicit two-space job blocks.")
+    if not jobs:
+        return [f"{path}: Bunko public CI requires explicit job blocks."]
+    for job, block in jobs:
+        location = f"{path}: job {job}"
+        if (path, job) != (".github/workflows/ci.yml", "verify"):
+            errors.append(f"{location}: outside the NAK-1009 public CI exception.")
+        # Exact values deliberately reject larger runners, groups, matrices,
+        # expressions, reusable workflows, and weakened or commented guards.
+        if workflow_job_field(block, "runs-on").strip() != "ubuntu-24.04":
+            errors.append(f"{location}: Bunko permits only the standard ubuntu-24.04 runner.")
+        if workflow_job_field(block, "if").strip() != BUNKO_PUBLIC_CI_GUARD:
+            errors.append(f"{location}: require the public-repository and same-repository PR guard.")
+        if re.findall(r"#\s*nakama-workload:\s*([a-z0-9-]+)", block) != ["server-only"]:
+            errors.append(f"{location}: Bunko CI requires the server-only workload.")
+        if workflow_job_field(block, "uses"):
+            errors.append(f"{location}: reusable workflows are outside the NAK-1009 exception.")
+    return errors
+
+
 def command_runner_policy(_: argparse.Namespace) -> None:
     root = repository_root()
     errors: list[str] = []
+    bunko = load_context(root).get("repository") == "NakamaDevs/Bunko"
     for path in workflow_files(root):
-        errors.extend(runner_policy_errors(str(path.relative_to(root)), path.read_text(encoding="utf-8")))
+        relative_path = str(path.relative_to(root))
+        text = path.read_text(encoding="utf-8")
+        errors.extend(runner_policy_errors(relative_path, text))
+        if bunko:
+            errors.extend(bunko_public_ci_errors(relative_path, text))
     if errors:
         fail("\n".join(errors))
     print("Runner routing policy checks passed.")

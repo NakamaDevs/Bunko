@@ -20,10 +20,11 @@ concurrency:
 
 jobs:
   verify:
-    # nakama-workload: native-macos
-    name: Verify Bunko on macOS
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && 'nakama-dependabot-macos-arm64' || 'nakama-macos-arm64' }}
+    # nakama-workload: server-only
+    name: Verify Bunko on Ubuntu
+    # NAK-1009: standard runners are free only while this repository is public.
+    if: ${{ github.event.repository.visibility == 'public' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
