@@ -20,11 +20,11 @@
     "watch": "npm run aspire:dev"
   },
   "dependencies": {
-    "@pierre/diffs": "^1.4.2",
+    "@pierre/diffs": "^1.4.3",
     "vscode-jsonrpc": "8.2.1"
   },
   "devDependencies": {
-    "@microsoft/aspire-cli": "13.5.3",
+    "@microsoft/aspire-cli": "13.5.4",
     "@types/node": "24.13.5",
     "esbuild": "0.28.2",
     "eslint": "^10.0.3",
