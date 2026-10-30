@@ -27,7 +27,7 @@
     "@microsoft/aspire-cli": "13.5.4",
     "@types/node": "24.13.5",
     "esbuild": "0.28.2",
-    "eslint": "^10.0.3",
+    "eslint": "^10.11.0",
     "nodemon": "^3.1.14",
     "tsx": "^4.21.0",
     "typescript": "6.0.3",
