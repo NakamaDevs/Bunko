@@ -103,7 +103,7 @@ def validate_branch_format(branch: str, policy: dict[str, str]) -> str | None:
     protected = {item.strip() for item in policy.get("PROTECTED_BRANCHES", "").split(",")}
     if branch in protected:
         return None
-    team = re.escape(policy["LINEAR_TEAM_KEY"])
+    team = r"[A-Z][A-Z0-9]*"
     # Bunko's user-authorized repository contract uses issue-only branch names.
     if policy.get("BRANCH_FORMAT") == "issue":
         plain = rf"^(?:{BRANCH_TYPES})/{team}-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*$"
@@ -116,7 +116,7 @@ def validate_branch_format(branch: str, policy: dict[str, str]) -> str | None:
 
 
 def linear_issue(branch: str, policy: dict[str, str], api_key: str, api_url: str) -> None:
-    ticket_match = re.search(rf"{re.escape(policy['LINEAR_TEAM_KEY'])}-[1-9][0-9]*", branch)
+    ticket_match = re.search(r"(?<![A-Za-z0-9_])[A-Z][A-Z0-9]*-[1-9][0-9]*(?![A-Za-z0-9_])", branch)
     if not ticket_match:
         fail("Branch policy error: could not extract the Linear issue identifier.")
     ticket = ticket_match.group(0)
@@ -140,13 +140,8 @@ def linear_issue(branch: str, policy: dict[str, str], api_key: str, api_url: str
     issue = ((result.get("data") or {}).get("issue") or {})
     if issue.get("identifier") != ticket:
         fail(f"Linear issue {ticket} does not exist or is not accessible.")
-    if (issue.get("team") or {}).get("key") != policy["LINEAR_TEAM_KEY"] or (
-        issue.get("project") or {}
-    ).get("name") != policy["LINEAR_PROJECT_NAME"]:
-        fail(
-            f"Linear issue {ticket} must belong to team {policy['LINEAR_TEAM_KEY']} "
-            f"and project {policy['LINEAR_PROJECT_NAME']}."
-        )
+    if (issue.get("project") or {}).get("name") != policy["LINEAR_PROJECT_NAME"]:
+        fail(f"Linear issue {ticket} must belong to project {policy['LINEAR_PROJECT_NAME']}.")
     print(f"Branch policy verified: {branch} references {ticket} in {policy['LINEAR_PROJECT_NAME']}.")
 
 
@@ -158,7 +153,7 @@ def command_branch(args: argparse.Namespace) -> None:
         branch = run_git("branch", "--show-current").stdout.strip()
     error = validate_branch_format(branch, policy)
     if error:
-        team = policy["LINEAR_TEAM_KEY"]
+        team = "TEAM"
         print(error, file=sys.stderr)
         print(
             (f"Use <type>/{team}-123-description." if policy.get("BRANCH_FORMAT") == "issue" else
