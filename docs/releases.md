@@ -1,7 +1,10 @@
 # Releases
 
 Use Semantic Versioning. Update `VERSION` through a reviewed release change.
-Run `mise run verify`. The package step emits:
+Update the version in `package.json` and `tools/review/web/package.json`, and
+their lock files, in the same change. Then run `mise run licenses` and commit
+`THIRD_PARTY_LICENSES.md`. The tests fail when that file names a different
+version. Run `mise run verify`. The package step emits:
 
 - `dist/bunko-<version>.tar.gz`: application code, built reviewer, docs assets,
   Aspire host, and exact dependency locks;

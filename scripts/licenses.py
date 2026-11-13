@@ -6,6 +6,11 @@ platform. Python license names come from the installed environment, because
 
     python scripts/licenses.py          # rewrite THIRD_PARTY_LICENSES.md
     python scripts/licenses.py --check  # fail when the file is stale or a license is not allowed
+
+The committed file is a snapshot for one release. A dependency update does not
+have to regenerate it, so a Dependabot pull request can pass. The tests check
+the license of each locked package on every change. The release archive gets a
+new list from the lock files, and a version change must regenerate the file.
 """
 from __future__ import annotations
 
@@ -140,10 +145,22 @@ SECTIONS = (
 )
 
 
+def version():
+    return (ROOT / "VERSION").read_text().strip()
+
+
+def heading():
+    """The first lines of the inventory. They name the version that the list was made for."""
+    return ["# Third-party licenses", "",
+            f"`scripts/licenses.py` generated this file from the lock files of Bunko {version()}.",
+            "Do not edit it.", "",
+            "A dependency update after that version can make this file old. Run",
+            "`mise run licenses` for the list of the current lock files. Each release",
+            "archive contains the list for its own lock files.", ""]
+
+
 def inventory(scopes):
-    lines = ["# Third-party licenses", "",
-             "`scripts/licenses.py` generates this file from the lock files. Do not edit it.",
-             "Run `mise run licenses` after a dependency change.", ""]
+    lines = heading()
     for scope, title, text in SECTIONS:
         counts = {}
         for license_name in scopes[scope].values():

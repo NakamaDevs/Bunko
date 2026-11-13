@@ -1,5 +1,8 @@
+import contextlib
 import importlib.util
+import io
 from pathlib import Path
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -9,10 +12,32 @@ spec.loader.exec_module(licenses)
 
 
 class LicenseTests(unittest.TestCase):
-    def test_committed_inventory_matches_the_lock_files(self):
+    def test_committed_inventory_names_the_current_version(self):
+        # A dependency update does not regenerate the file. A version change must.
+        self.assertEqual(licenses.INVENTORY.read_text().splitlines()[:len(licenses.heading())], licenses.heading(),
+                         "THIRD_PARTY_LICENSES.md is for a different version. Run mise run licenses.")
+
+    def test_inventory_lists_each_locked_package(self):
         scopes, _ = licenses.collect()
-        self.assertEqual(licenses.INVENTORY.read_text(), licenses.inventory(scopes),
-                         "THIRD_PARTY_LICENSES.md is stale. Run mise run licenses.")
+        text = licenses.inventory(scopes)
+        for packages in scopes.values():
+            for (name, version), license_name in packages.items():
+                self.assertIn(f"| `{name}` | {version} | {license_name} |", text)
+
+    def test_check_reports_a_stale_inventory(self):
+        original = licenses.INVENTORY
+        with tempfile.TemporaryDirectory() as directory:
+            licenses.INVENTORY = Path(directory) / "THIRD_PARTY_LICENSES.md"
+            try:
+                licenses.INVENTORY.write_text("old\n")
+                with contextlib.redirect_stderr(io.StringIO()) as errors:
+                    self.assertEqual(licenses.main(["--check"]), 1)
+                self.assertIn("is stale", errors.getvalue())
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(licenses.main([]), 0)
+                self.assertEqual(licenses.main(["--check"]), 0)
+            finally:
+                licenses.INVENTORY = original
 
     def test_every_license_is_allowed_in_its_scope(self):
         scopes, _ = licenses.collect()

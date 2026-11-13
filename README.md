@@ -408,7 +408,8 @@ CI consumes the committed locks; keep their versions and integrity hashes togeth
 Bunko is available under the [MIT License](LICENSE).
 
 Bunko uses third-party software. [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)
-lists each package and its license. The release archive contains code from the
+lists each package and its license for the version that its first lines name.
+Each release archive contains the list for its own lock files. The release archive contains code from the
 production npm dependencies. It carries their license texts in
 `THIRD_PARTY_NOTICES.txt`, with `LICENSE` and the license list. Python packages
 and build tools are installed from their registries and are not in the archive.
