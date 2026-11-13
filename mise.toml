@@ -26,7 +26,7 @@ description = "Run the complete Bunko validation gate"
 run = ["mise run governance:check", "mise run test", "npm run lint", "npx --no-install tsc --noEmit -p tsconfig.apphost.json", "tools/review/web/node_modules/.bin/vue-tsc --noEmit -p tools/review/web/tsconfig.json", "mise run assets:build", "uv run --project tools python scripts/package.py"]
 
 [tasks."governance:check"]
-run = ["uv run --project tools python scripts/nakama_governance.py self-test", "uv run --project tools python scripts/nakama_governance.py agent-contract", "uv run --project tools python scripts/nakama_governance.py pr-branch", "uv run --project tools python scripts/nakama_governance.py pr-title", "uv run --project tools python scripts/nakama_governance.py supply-chain", "uv run --project tools python scripts/nakama_governance.py runner-policy", "uv run --project tools python scripts/nakama_governance.py workflow-events", "mise run security:secrets", "actionlint"]
+run = ["python3 scripts/test_ticket_policy.py", "uv run --project tools python scripts/nakama_governance.py self-test", "uv run --project tools python scripts/nakama_governance.py agent-contract", "uv run --project tools python scripts/nakama_governance.py pr-branch", "uv run --project tools python scripts/nakama_governance.py pr-title", "uv run --project tools python scripts/nakama_governance.py supply-chain", "uv run --project tools python scripts/nakama_governance.py runner-policy", "uv run --project tools python scripts/nakama_governance.py workflow-events", "mise run security:secrets", "actionlint"]
 
 [tasks."security:secrets"]
 run = "uv run --project tools python scripts/nakama_governance.py secrets history"

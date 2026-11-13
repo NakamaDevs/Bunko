@@ -30,7 +30,7 @@ Use team `NAK` and project `Bunko` in Linear.
 
 Create or locate an issue before editing. Keep one issue, owner, and isolated
 Herdr worktree for each reviewable change. New branches use
-`<type>/NAK-123-short-description`. Keep the primary checkout on `main`.
+`<type>/TEAM-123-short-description`. Keep the primary checkout on `main`.
 Record stack parents in the issue and any pull request. Use the delivery routes
 above; solo work does not require a pull request.
 
