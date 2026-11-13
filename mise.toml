@@ -37,6 +37,18 @@ run = "uv run --project tools python scripts/nakama_governance.py secrets staged
 [tasks."hooks:install"]
 run = "uv run --project tools python scripts/nakama_governance.py install-hooks"
 
+[tasks.notes]
+description = "Print open comments of a running workspace: mise run notes -- --config <workspace.json> [--repo ID] [--page /path/] [--format json]"
+run = "python3 bunko notes list"
+
+[tasks."notes:resolve"]
+description = "Mark comments as resolved: mise run notes:resolve -- --config <workspace.json> <ID>..."
+run = "python3 bunko notes resolve"
+
+[tasks."notes:clear"]
+description = "Delete comments of a running workspace: mise run notes:clear -- --config <workspace.json> [filters] --yes"
+run = "python3 bunko notes clear"
+
 [tasks.licenses]
 description = "Regenerate the third-party license list from the lock files"
 run = "uv run --project tools python scripts/licenses.py"

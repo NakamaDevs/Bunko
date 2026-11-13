@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 
+from . import notes
 from .config import Workspace
 
 PACKAGE = Path(__file__).resolve().parent.parent
@@ -161,9 +162,14 @@ def main(argv=None):
         command.add_argument("--config", default="workspace.json", help="Workspace configuration; paths are relative to this file")
         if name in {"start", "setup"}:
             command.add_argument("--dev-tools", action="store_true", help="Enable the optional Tidewave/Vite development integration")
+    notes.add_arguments(commands, lambda command: command.add_argument(
+        "--config", default="workspace.json", help="Workspace configuration; paths are relative to this file"))
     args = parser.parse_args(argv)
     try:
         workspace = Workspace.load(args.config)
+        if args.command == "notes":
+            # No lifecycle lock: reading comments must work while a start or a stop runs.
+            return notes.main(workspace, args)
         if args.command == "doctor":
             missing = [tool for tool in ("git", "node", "npm", "uv") if not shutil.which(tool)]
             print(json.dumps({"version": version(), "config": str(workspace.config), "state": str(workspace.state),
