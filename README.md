@@ -292,6 +292,7 @@ bundle to test the installed layout.
 - [`consumer/`](consumer/): small pinned-release bootstrap.
 - [`docs/releases.md`](docs/releases.md): packaging, publication, and rollback.
 - [`docs/extraction.md`](docs/extraction.md): source provenance and migration.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): how to propose, verify, and deliver a change.
 - [`AGENTS.md`](AGENTS.md): repository work and review contract.
 
 Work is tracked in the Bunko project in Linear, starting with NAK-913. Kaicho is
@@ -345,3 +346,12 @@ CI consumes the committed locks; keep their versions and integrity hashes togeth
 ## License
 
 Bunko is available under the [MIT License](LICENSE).
+
+Bunko uses third-party software. [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)
+lists each package and its license. The release archive contains code from the
+production npm dependencies. It carries their license texts in
+`THIRD_PARTY_NOTICES.txt`, with `LICENSE` and the license list. Python packages
+and build tools are installed from their registries and are not in the archive.
+
+The reviewer page loads the Archivo, Inter, and Roboto Mono fonts from
+Google Fonts when it opens. Bunko does not redistribute the fonts.
