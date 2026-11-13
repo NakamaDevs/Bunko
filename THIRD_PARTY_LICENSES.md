@@ -9,7 +9,7 @@ Production dependencies of the two npm packages. The build bundles their code in
 `tools/review/web/dist` and `tools/docs/assets/assets/diffs`, and the release archive
 contains that output. The archive carries their license texts in `THIRD_PARTY_NOTICES.txt`.
 
-110 packages: MIT (92), Apache-2.0 (10), ISC (4), BSD-3-Clause (2), 0BSD (1), BSD-2-Clause (1).
+121 packages: MIT (103), Apache-2.0 (10), ISC (4), BSD-3-Clause (2), 0BSD (1), BSD-2-Clause (1).
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -20,26 +20,33 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 | `@floating-ui/core` | 1.8.0 | MIT |
 | `@floating-ui/dom` | 1.8.0 | MIT |
 | `@floating-ui/utils` | 0.2.12 | MIT |
-| `@floating-ui/vue` | 1.1.11 | MIT |
+| `@floating-ui/vue` | 2.0.1 | MIT |
 | `@internationalized/date` | 3.12.4 | Apache-2.0 |
 | `@internationalized/number` | 3.6.8 | Apache-2.0 |
 | `@jridgewell/sourcemap-codec` | 1.6.0 | MIT |
-| `@lucide/vue` | 1.47.0 | ISC |
-| `@pierre/diffs` | 1.4.3 | Apache-2.0 |
-| `@pierre/diffs` | 1.5.1 | Apache-2.0 |
+| `@lucide/vue` | 1.69.0 | ISC |
+| `@pierre/diffs` | 1.6.4 | Apache-2.0 |
+| `@pierre/highlights` | 0.4.0 | Apache-2.0 |
 | `@pierre/theme` | 2.0.0 | Apache-2.0 |
 | `@pierre/theming` | 1.0.0 | Apache-2.0 |
-| `@pierre/theming` | 1.0.1 | Apache-2.0 |
+| `@pierre/theming` | 1.0.2 | Apache-2.0 |
 | `@pierre/trees` | 1.0.0-beta.6 | Apache-2.0 |
 | `@shikijs/core` | 4.4.3 | MIT |
+| `@shikijs/core` | 4.6.0 | MIT |
 | `@shikijs/engine-javascript` | 4.4.3 | MIT |
+| `@shikijs/engine-javascript` | 4.6.0 | MIT |
 | `@shikijs/engine-oniguruma` | 4.4.3 | MIT |
+| `@shikijs/engine-oniguruma` | 4.6.0 | MIT |
 | `@shikijs/langs` | 4.4.3 | MIT |
+| `@shikijs/langs` | 4.6.0 | MIT |
 | `@shikijs/primitive` | 4.4.3 | MIT |
+| `@shikijs/primitive` | 4.6.0 | MIT |
 | `@shikijs/themes` | 4.4.3 | MIT |
-| `@shikijs/transformers` | 4.4.3 | MIT |
+| `@shikijs/themes` | 4.6.0 | MIT |
 | `@shikijs/types` | 4.4.3 | MIT |
+| `@shikijs/types` | 4.6.0 | MIT |
 | `@shikijs/vscode-textmate` | 10.0.2 | MIT |
+| `@shikijs/vscode-textmate` | 10.1.0 | MIT |
 | `@swc/helpers` | 0.5.23 | Apache-2.0 |
 | `@tanstack/virtual-core` | 3.17.11 | MIT |
 | `@tanstack/vue-virtual` | 3.13.39 | MIT |
@@ -78,6 +85,7 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 | `entities` | 7.0.1 | BSD-2-Clause |
 | `estree-walker` | 2.0.2 | MIT |
 | `hast-util-to-html` | 9.0.5 | MIT |
+| `hast-util-to-html` | 9.0.6 | MIT |
 | `hast-util-whitespace` | 3.0.0 | MIT |
 | `html-void-elements` | 3.0.0 | MIT |
 | `lru_map` | 0.4.1 | MIT |
@@ -89,6 +97,7 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 | `micromark-util-sanitize-uri` | 2.0.1 | MIT |
 | `micromark-util-symbol` | 2.0.1 | MIT |
 | `micromark-util-types` | 2.0.2 | MIT |
+| `micromark-util-types` | 2.0.3 | MIT |
 | `nanoid` | 3.3.19 | MIT |
 | `ohash` | 2.0.12 | MIT |
 | `oniguruma-parser` | 0.12.2 | MIT |
@@ -103,9 +112,10 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 | `regex` | 6.1.0 | MIT |
 | `regex-recursion` | 6.0.2 | MIT |
 | `regex-utilities` | 2.3.0 | MIT |
-| `reka-ui` | 2.10.4 | MIT |
+| `reka-ui` | 2.11.0 | MIT |
 | `scheduler` | 0.28.0 | MIT |
 | `shiki` | 4.4.3 | MIT |
+| `shiki` | 4.6.0 | MIT |
 | `source-map-js` | 1.2.1 | BSD-3-Clause |
 | `space-separated-tokens` | 2.0.2 | MIT |
 | `stringify-entities` | 4.0.4 | MIT |
@@ -116,12 +126,13 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 | `unist-util-position` | 5.0.0 | MIT |
 | `unist-util-stringify-position` | 4.0.0 | MIT |
 | `unist-util-visit` | 5.1.0 | MIT |
+| `unist-util-visit` | 5.2.0 | MIT |
 | `unist-util-visit-parents` | 6.0.2 | MIT |
+| `unist-util-visit-parents` | 6.1.0 | MIT |
 | `vfile` | 6.0.3 | MIT |
 | `vfile-message` | 4.0.3 | MIT |
 | `vscode-jsonrpc` | 8.2.1 | MIT |
 | `vue` | 3.5.43 | MIT |
-| `vue-demi` | 0.14.10 | MIT |
 | `zwitch` | 2.0.4 | MIT |
 
 ## Installed by `bunko setup`
@@ -129,25 +140,25 @@ contains that output. The archive carries their license texts in `THIRD_PARTY_NO
 Python packages that `uv` installs from PyPI on the user's machine. The release archive
 does not contain them.
 
-40 packages: MIT (17), Apache-2.0 (8), BSD-3-Clause (5), BSD-2-Clause (2), MPL-2.0 (2), PSF-2.0 (2), Apache-2.0 AND BSD-3-Clause (1), Apache-2.0 AND MIT (1), Apache-2.0 OR BSD-2-Clause (1), MIT OR AFL-2.1 (1).
+41 packages: MIT (18), Apache-2.0 (8), BSD-3-Clause (5), BSD-2-Clause (2), MPL-2.0 (2), PSF-2.0 (2), Apache-2.0 AND BSD-3-Clause (1), Apache-2.0 AND MIT (1), Apache-2.0 OR BSD-2-Clause (1), MIT OR AFL-2.1 (1).
 
 | Package | Version | License |
 | --- | --- | --- |
 | `aiohappyeyeballs` | 2.7.1 | PSF-2.0 |
-| `aiohttp` | 3.14.3 | Apache-2.0 AND MIT |
+| `aiohttp` | 3.14.5 | Apache-2.0 AND MIT |
 | `aiosignal` | 1.4.0 | Apache-2.0 |
 | `attrs` | 26.1.0 | MIT |
 | `certifi` | 2026.7.22 | MPL-2.0 |
 | `charset-normalizer` | 3.5.1 | MIT |
 | `click` | 8.5.0 | BSD-3-Clause |
 | `deepmerge` | 3.0.1 | MIT |
-| `duckdb` | 1.5.5 | MIT |
+| `duckdb` | 2.0.0 | MIT |
 | `frozenlist` | 1.8.0 | Apache-2.0 |
 | `ghp-import` | 2.1.0 | Apache-2.0 |
 | `hjson` | 3.1.0 | MIT OR AFL-2.1 |
 | `idna` | 3.19 | BSD-3-Clause |
 | `jinja2` | 3.1.6 | BSD-3-Clause |
-| `markdown` | 3.10.3 | BSD-3-Clause |
+| `markdown` | 3.11.2 | BSD-3-Clause |
 | `markupsafe` | 3.0.3 | BSD-3-Clause |
 | `mergedeep` | 1.3.4 | MIT |
 | `mkdocs` | 1.6.1 | BSD-2-Clause |
@@ -171,8 +182,9 @@ does not contain them.
 | `typing-extensions` | 4.16.0 | PSF-2.0 |
 | `urllib3` | 2.7.0 | MIT |
 | `watchdog` | 6.0.0 | Apache-2.0 |
-| `yarl` | 1.24.5 | Apache-2.0 |
-| `zensical` | 0.0.62 | MIT |
+| `yarl` | 1.25.1 | Apache-2.0 |
+| `zensical` | 0.0.74 | MIT |
+| `zensical-ui` | 0.0.41 | MIT |
 
 ## Build and development tools
 
@@ -180,7 +192,7 @@ npm development dependencies. `bunko setup` installs those of the root package, 
 include the Aspire command-line tool. `--dev-tools` installs those of the reviewer. The
 release archive does not contain them.
 
-325 packages: MIT (259), MPL-2.0 (24), Apache-2.0 (16), ISC (15), BSD-2-Clause (7), BSD-3-Clause (3), BlueOak-1.0.0 (1).
+324 packages: MIT (259), MPL-2.0 (24), Apache-2.0 (15), ISC (15), BSD-2-Clause (7), BSD-3-Clause (3), BlueOak-1.0.0 (1).
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -222,7 +234,7 @@ release archive does not contain them.
 | `@eslint/core` | 1.2.1 | Apache-2.0 |
 | `@eslint/object-schema` | 3.0.5 | Apache-2.0 |
 | `@eslint/plugin-kit` | 0.7.3 | Apache-2.0 |
-| `@hono/node-server` | 2.1.1 | MIT |
+| `@hono/node-server` | 2.1.6 | MIT |
 | `@humanfs/core` | 0.19.2 | Apache-2.0 |
 | `@humanfs/node` | 0.16.8 | Apache-2.0 |
 | `@humanfs/types` | 0.15.0 | Apache-2.0 |
@@ -242,7 +254,7 @@ release archive does not contain them.
 | `@microsoft/aspire-cli-osx-x64` | 13.5.4 | MIT |
 | `@microsoft/aspire-cli-win-arm64` | 13.5.4 | MIT |
 | `@microsoft/aspire-cli-win-x64` | 13.5.4 | MIT |
-| `@modelcontextprotocol/sdk` | 1.30.0 | MIT |
+| `@modelcontextprotocol/sdk` | 1.32.2 | MIT |
 | `@napi-rs/wasm-runtime` | 1.1.4 | MIT |
 | `@oxc-project/types` | 0.150.0 | MIT |
 | `@rolldown/binding-android-arm-eabi` | 1.2.9 | MIT |
@@ -280,18 +292,17 @@ release archive does not contain them.
 | `@types/esrecurse` | 4.3.1 | MIT |
 | `@types/estree` | 1.0.9 | MIT |
 | `@types/json-schema` | 7.0.15 | MIT |
-| `@types/node` | 24.13.5 | MIT |
-| `@types/node` | 24.19.0 | MIT |
-| `@typescript-eslint/eslint-plugin` | 8.70.1 | MIT |
-| `@typescript-eslint/parser` | 8.70.1 | MIT |
-| `@typescript-eslint/project-service` | 8.70.1 | MIT |
-| `@typescript-eslint/scope-manager` | 8.70.1 | MIT |
-| `@typescript-eslint/tsconfig-utils` | 8.70.1 | MIT |
-| `@typescript-eslint/type-utils` | 8.70.1 | MIT |
-| `@typescript-eslint/types` | 8.70.1 | MIT |
-| `@typescript-eslint/typescript-estree` | 8.70.1 | MIT |
-| `@typescript-eslint/utils` | 8.70.1 | MIT |
-| `@typescript-eslint/visitor-keys` | 8.70.1 | MIT |
+| `@types/node` | 24.19.2 | MIT |
+| `@typescript-eslint/eslint-plugin` | 8.72.0 | MIT |
+| `@typescript-eslint/parser` | 8.72.0 | MIT |
+| `@typescript-eslint/project-service` | 8.72.0 | MIT |
+| `@typescript-eslint/scope-manager` | 8.72.0 | MIT |
+| `@typescript-eslint/tsconfig-utils` | 8.72.0 | MIT |
+| `@typescript-eslint/type-utils` | 8.72.0 | MIT |
+| `@typescript-eslint/types` | 8.72.0 | MIT |
+| `@typescript-eslint/typescript-estree` | 8.72.0 | MIT |
+| `@typescript-eslint/utils` | 8.72.0 | MIT |
+| `@typescript-eslint/visitor-keys` | 8.72.0 | MIT |
 | `@vitejs/plugin-vue` | 6.0.9 | MIT |
 | `@volar/language-core` | 2.4.28 | MIT |
 | `@volar/source-map` | 2.4.28 | MIT |
@@ -307,15 +318,17 @@ release archive does not contain them.
 | `anymatch` | 3.1.3 | ISC |
 | `balanced-match` | 4.0.4 | MIT |
 | `binary-extensions` | 2.3.0 | MIT |
-| `body-parser` | 2.3.0 | MIT |
+| `body-parser` | 2.4.0 | MIT |
 | `brace-expansion` | 5.0.9 | MIT |
 | `braces` | 3.0.3 | MIT |
 | `bytes` | 3.1.2 | MIT |
 | `cacheable` | 2.5.0 | MIT |
 | `call-bind-apply-helpers` | 1.0.2 | MIT |
 | `call-bound` | 1.0.4 | MIT |
+| `chalk` | 6.0.1 | MIT |
 | `chokidar` | 3.6.0 | MIT |
-| `content-disposition` | 1.1.0 | MIT |
+| `commander` | 15.0.0 | MIT |
+| `content-disposition` | 2.0.1 | MIT |
 | `content-type` | 1.0.5 | MIT |
 | `content-type` | 2.1.0 | MIT |
 | `cookie` | 0.7.2 | MIT |
@@ -328,7 +341,7 @@ release archive does not contain them.
 | `detect-libc` | 2.1.2 | Apache-2.0 |
 | `dunder-proto` | 1.0.1 | MIT |
 | `ee-first` | 1.1.1 | MIT |
-| `encodeurl` | 2.0.0 | MIT |
+| `encodeurl` | 2.0.1 | MIT |
 | `enhanced-resolve` | 5.25.1 | MIT |
 | `es-define-property` | 1.0.1 | MIT |
 | `es-errors` | 1.3.0 | MIT |
@@ -336,7 +349,7 @@ release archive does not contain them.
 | `esbuild` | 0.28.2 | MIT |
 | `escape-html` | 1.0.3 | MIT |
 | `escape-string-regexp` | 4.0.0 | MIT |
-| `eslint` | 10.11.0 | MIT |
+| `eslint` | 10.13.0 | MIT |
 | `eslint-scope` | 9.1.2 | BSD-2-Clause |
 | `eslint-visitor-keys` | 3.4.3 | Apache-2.0 |
 | `eslint-visitor-keys` | 5.0.1 | Apache-2.0 |
@@ -348,12 +361,12 @@ release archive does not contain them.
 | `etag` | 1.8.1 | MIT |
 | `eventsource` | 3.0.7 | MIT |
 | `eventsource-parser` | 3.1.1 | MIT |
-| `express` | 5.2.1 | MIT |
-| `express-rate-limit` | 8.7.0 | MIT |
+| `express` | 5.3.0 | MIT |
+| `express-rate-limit` | 8.7.3 | MIT |
 | `fast-deep-equal` | 3.1.3 | MIT |
 | `fast-json-stable-stringify` | 2.1.0 | MIT |
 | `fast-levenshtein` | 2.0.6 | MIT |
-| `fast-uri` | 3.1.8 | BSD-3-Clause |
+| `fast-uri` | 3.1.9 | BSD-3-Clause |
 | `fdir` | 6.5.0 | MIT |
 | `file-entry-cache` | 11.1.5 | MIT |
 | `fill-range` | 7.1.1 | MIT |
@@ -375,17 +388,17 @@ release archive does not contain them.
 | `has-symbols` | 1.1.0 | MIT |
 | `hashery` | 1.5.1 | MIT |
 | `hasown` | 2.0.4 | MIT |
-| `hono` | 4.13.8 | MIT |
+| `hono` | 4.13.16 | MIT |
 | `hookified` | 1.15.1 | MIT |
 | `hookified` | 2.2.0 | MIT |
 | `http-errors` | 2.0.1 | MIT |
 | `iconv-lite` | 0.7.3 | MIT |
 | `ignore` | 5.3.2 | MIT |
-| `ignore` | 7.0.10 | MIT |
+| `ignore` | 7.0.14 | MIT |
 | `ignore-by-default` | 1.0.1 | ISC |
 | `imurmurhash` | 0.1.4 | MIT |
 | `inherits` | 2.0.4 | ISC |
-| `ip-address` | 10.7.2 | MIT |
+| `ip-address` | 10.7.6 | MIT |
 | `ipaddr.js` | 1.9.1 | MIT |
 | `is-binary-path` | 2.1.0 | MIT |
 | `is-extglob` | 2.1.1 | MIT |
@@ -394,7 +407,7 @@ release archive does not contain them.
 | `is-promise` | 4.0.0 | MIT |
 | `isexe` | 2.0.0 | ISC |
 | `jiti` | 2.7.0 | MIT |
-| `jose` | 6.2.12 | MIT |
+| `jose` | 6.2.15 | MIT |
 | `json-schema-traverse` | 0.4.1 | MIT |
 | `json-schema-traverse` | 1.0.0 | MIT |
 | `json-schema-typed` | 8.0.2 | BSD-2-Clause |
@@ -440,7 +453,7 @@ release archive does not contain them.
 | `normalize-path` | 3.0.0 | MIT |
 | `object-assign` | 4.1.1 | MIT |
 | `object-inspect` | 1.13.4 | MIT |
-| `on-finished` | 2.4.1 | MIT |
+| `on-finished` | 2.4.2 | MIT |
 | `once` | 1.4.0 | ISC |
 | `optionator` | 0.9.4 | MIT |
 | `p-limit` | 3.1.0 | MIT |
@@ -458,7 +471,7 @@ release archive does not contain them.
 | `pstree.remy` | 1.1.8 | MIT |
 | `punycode` | 2.3.1 | MIT |
 | `qified` | 0.10.1 | MIT |
-| `qs` | 6.16.0 | BSD-3-Clause |
+| `qs` | 6.17.1 | BSD-3-Clause |
 | `range-parser` | 1.3.0 | MIT |
 | `raw-body` | 3.0.2 | MIT |
 | `readdirp` | 3.6.0 | MIT |
@@ -481,20 +494,18 @@ release archive does not contain them.
 | `supports-color` | 5.5.0 | MIT |
 | `tailwindcss` | 4.3.3 | MIT |
 | `tapable` | 2.3.3 | MIT |
-| `tidewave` | 0.9.0 | Apache-2.0 |
+| `tidewave` | 0.10.0 | Apache-2.0 |
 | `tinyglobby` | 0.2.17 | MIT |
 | `to-regex-range` | 5.0.1 | MIT |
 | `toidentifier` | 1.0.1 | MIT |
 | `touch` | 3.1.1 | ISC |
 | `ts-api-utils` | 2.5.0 | MIT |
-| `tsx` | 4.23.13 | MIT |
+| `tsx` | 4.23.15 | MIT |
 | `type-check` | 0.4.0 | MIT |
 | `type-is` | 2.1.0 | MIT |
-| `typescript` | 5.9.3 | Apache-2.0 |
 | `typescript` | 6.0.3 | Apache-2.0 |
-| `typescript-eslint` | 8.70.1 | MIT |
+| `typescript-eslint` | 8.72.0 | MIT |
 | `undefsafe` | 2.0.5 | MIT |
-| `undici-types` | 7.18.2 | MIT |
 | `undici-types` | 7.24.6 | MIT |
 | `unpipe` | 1.0.0 | MIT |
 | `uri-js` | 4.4.1 | BSD-2-Clause |
@@ -505,7 +516,7 @@ release archive does not contain them.
 | `which` | 2.0.2 | ISC |
 | `word-wrap` | 1.2.5 | MIT |
 | `wrappy` | 1.0.2 | ISC |
-| `ws` | 8.21.3 | MIT |
+| `ws` | 8.22.1 | MIT |
 | `yocto-queue` | 0.1.0 | MIT |
-| `zod` | 3.25.76 | MIT |
+| `zod` | 4.6.7 | MIT |
 | `zod-to-json-schema` | 3.25.2 | ISC |
