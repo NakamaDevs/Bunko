@@ -213,6 +213,66 @@ git -C <checkout> rev-parse --abbrev-ref HEAD
 git -C <checkout> status --porcelain
 ```
 
+## Give comments to an agent
+
+A comment is a note that you add in the documentation site or in the reviewer.
+In the documentation site, select text or use the button beside a block. In the
+reviewer, open a file or a diff and click a line number.
+
+The `bunko notes` commands read the comments of the running workspace. They
+need `bunko start` first, because only the notes service opens the database.
+
+```sh
+python3 scripts/bunko.py notes list
+python3 scripts/bunko.py notes list --repo billing --format json
+python3 scripts/bunko.py notes resolve 12 15
+python3 scripts/bunko.py notes clear --repo billing@fix-login --yes
+```
+
+`notes list` prints open comments as Markdown that you can give to an agent as
+a prompt. Each comment has its kind, its text, the text that it refers to, and
+the absolute path of the file on disk with the line number. For a comment on a
+documentation page, the path is the source file of that page. Comments are in
+one section for each repository and each worktree.
+
+| Option | Effect |
+| --- | --- |
+| `--repo ID` | Comments of one repository and of its worktrees |
+| `--repo ID@worktree` | Comments of one worktree, with the name that the reviewer shows |
+| `--no-worktrees` | No comments from linked worktrees |
+| `--source docs` or `--source review` | Comments from one tool only |
+| `--page /guide/` | Documentation comments whose page path starts with this text |
+| `--kind TODO` | One kind: `TODO`, `QUESTION`, `FIXME`, or `NOTE` |
+| `--all` | Include resolved comments (`list` only) |
+| `--format markdown`, `json`, or `text` | Output format (`list` only); `json` has all fields |
+
+`notes resolve` marks comments as resolved. `--reopen` opens them again.
+
+`notes clear` deletes comments and accepts the same filters. With no filter, it
+deletes all comments, also the resolved ones. `--open-only` keeps the resolved
+comments. The command deletes nothing without `--yes`; it then only reports how
+many comments match. A deleted comment cannot be restored.
+
+To find the commands easily, add tasks to the `mise.toml` of the consumer:
+
+```toml
+[tasks.notes]
+description = "Print open Bunko comments for an agent"
+run = "python3 scripts/bunko.py notes list"
+
+[tasks."notes:resolve"]
+description = "Mark Bunko comments as resolved"
+run = "python3 scripts/bunko.py notes resolve"
+
+[tasks."notes:clear"]
+description = "Delete Bunko comments; add --yes to confirm"
+run = "python3 scripts/bunko.py notes clear"
+```
+
+Then `mise run notes -- --repo billing` passes the options to the command.
+This repository has the same three tasks for a checkout of Bunko. They need
+`--config <workspace.json>`.
+
 ## Customize the site and reviewer
 
 Bunko ships a neutral look. A consumer keeps its own navigation, plugins, and
