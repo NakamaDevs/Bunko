@@ -37,6 +37,10 @@ run = "uv run --project tools python scripts/nakama_governance.py secrets staged
 [tasks."hooks:install"]
 run = "uv run --project tools python scripts/nakama_governance.py install-hooks"
 
+[tasks.licenses]
+description = "Regenerate the third-party license list from the lock files"
+run = "uv run --project tools python scripts/licenses.py"
+
 [tasks.package]
 description = "Produce the versioned bundle, checksums, and consumer pin"
 depends = ["assets:build"]
