@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import sqlite3
 import sys
 import threading
@@ -298,16 +299,35 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, {"ok": True})
 
 
+def _terminate(signum, frame) -> None:
+    raise KeyboardInterrupt
+
+
+def close() -> None:
+    """Close the store, which writes pending changes into the database file."""
+    global _connection
+    with _lock:
+        if _connection is not None:
+            _connection.close()
+            _connection = None
+
+
 def main() -> int:
     ui_url = start_ui(connect())
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"documentation notes on http://{HOST}:{PORT}/notes  (database: {DATABASE})")
     if ui_url:
         print(f"DuckDB UI on {ui_url}")
+    # A process manager stops the service with SIGTERM. Treat it like Ctrl+C,
+    # so the connection closes and DuckDB merges its WAL file into the database.
+    signal.signal(signal.SIGTERM, _terminate)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nstopped")
+    finally:
+        server.server_close()
+        close()
     return 0
 
 

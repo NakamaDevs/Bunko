@@ -94,19 +94,62 @@ def active_runtime(workspace):
     return runtime
 
 
+# Runs with the runtime's Python, which has DuckDB. A read-only connection
+# fails while another process has the database open, so a live writer is
+# refused. A WAL file remains when the notes service did not close its
+# connection. The copy then gets that WAL file too, and a checkpoint merges it,
+# so the backup is one complete file. The original database is not changed.
+BACKUP_SCRIPT = """
+import duckdb, pathlib, shutil, sys, tempfile
+source, backup = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+duckdb.connect(str(source), read_only=True).close()
+with tempfile.TemporaryDirectory(dir=backup.parent) as directory:
+    copy = pathlib.Path(directory) / source.name
+    shutil.copy2(source, copy)
+    wal = pathlib.Path(str(source) + ".wal")
+    if wal.exists():
+        shutil.copy2(wal, str(copy) + ".wal")
+        connection = duckdb.connect(str(copy))
+        connection.execute("CHECKPOINT")
+        connection.close()
+    copy.replace(backup)
+"""
+
+# `aspire stop` returns before the notes service ends. Wait until the database
+# is free, so a start that follows does not meet the old writer.
+RELEASE_SCRIPT = """
+import duckdb, sys, time
+deadline = time.monotonic() + 20
+while True:
+    try:
+        duckdb.connect(sys.argv[1], read_only=True).close()
+        break
+    except duckdb.Error:
+        if time.monotonic() > deadline:
+            raise
+        time.sleep(0.25)
+"""
+
+
+def wait_for_notes(workspace, runtime):
+    if workspace.database.exists():
+        try:
+            run([runtime / "tools/.venv/bin/python", "-c", RELEASE_SCRIPT, workspace.database], workspace.root)
+        except subprocess.CalledProcessError:
+            raise ValueError("The notes service did not release its database in 20 seconds.") from None
+
+
 def backup_notes(workspace):
     if workspace.database.exists():
         backup = workspace.state / "backups" / f"notes-before-{version()}.duckdb"
         if not backup.exists():
-            # Connect read-only to reject a live writer before copying its database.
-            # The actual schema is unchanged in 0.1.0; backups support explicit rollback.
+            # The schema is unchanged since 0.1.0; backups support explicit rollback.
             runtime = runtime_path(workspace)
-            script = "import duckdb,sys; c=duckdb.connect(sys.argv[1],read_only=True); c.close()"
-            run([runtime / "tools/.venv/bin/python", "-c", script, workspace.database], workspace.root)
-            if Path(str(workspace.database) + ".wal").exists():
-                raise ValueError("Stop the existing notes service cleanly before migration; a DuckDB WAL remains")
             backup.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(workspace.database, backup)
+            try:
+                run([runtime / "tools/.venv/bin/python", "-c", BACKUP_SCRIPT, workspace.database, backup], workspace.root)
+            except subprocess.CalledProcessError:
+                raise ValueError("The notes database is in use or cannot be read. Stop the workspace that uses it, then start again.") from None
 
 
 def main(argv=None):
@@ -142,6 +185,7 @@ def main(argv=None):
                 run([runtime / "node_modules/.bin/aspire", command, "--apphost", runtime / "apphost.mts", "--non-interactive"], runtime)
                 if args.command == "stop":
                     (workspace.state / "active.json").unlink()
+                    wait_for_notes(workspace, runtime)
                 return 0
             if args.command == "start" and active_runtime(workspace):
                 raise ValueError("A Bunko runtime is already recorded. Run bunko status, then bunko stop before starting or upgrading.")
