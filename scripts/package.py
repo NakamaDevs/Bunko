@@ -13,11 +13,11 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from bunko_app.cli import IGNORE, PAYLOAD
-from licenses import notices
+from licenses import collect, inventory, notices
 
 
 def files():
-    for name in (*PAYLOAD, "bunko", "README.md", "LICENSE", "THIRD_PARTY_LICENSES.md"):
+    for name in (*PAYLOAD, "bunko", "README.md", "LICENSE"):
         source = ROOT / name
         if source.is_file():
             yield source
@@ -39,6 +39,9 @@ def main():
             raise SystemExit(f"Missing release asset: {asset}. Run mise run assets:build first.")
     version = (ROOT / "VERSION").read_text().strip()
     contents = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in files()}
+    # The license list comes from the lock files, not from the committed file, so it is
+    # correct for this archive after a dependency update.
+    contents["THIRD_PARTY_LICENSES.md"] = inventory(collect()[0]).encode()
     # The bundled web assets contain third-party code, so each copy carries its notices.
     contents["THIRD_PARTY_NOTICES.txt"] = (notices() + "\n").encode()
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()

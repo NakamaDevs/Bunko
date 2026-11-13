@@ -104,17 +104,24 @@ license in three groups:
 When you add, remove, or update a dependency:
 
 1. Keep the exact lock files. Commit the manifest and its lock file together.
-2. Run `mise run licenses`. Commit the new `THIRD_PARTY_LICENSES.md`.
-3. Read the diff of that file. Make sure that each new license is correct.
+2. Run `mise run test`. The tests read the license of each locked package.
+3. Run `mise run licenses`, and read the diff of `THIRD_PARTY_LICENSES.md`.
+   Make sure that each new license is correct. Commit the file.
 
-The tests fail when the list is stale, when a package has no license, or when
-a license is not permitted for its group. Do not add a license to the
-permitted list in `scripts/licenses.py` without a maintainer's decision. A
-copyleft license, such as GPL or AGPL, is not permitted in the release bundle.
+Step 3 is optional for an automatic update, such as a Dependabot pull request.
+The committed file is the list for one version, and its first lines name that
+version. A change of `VERSION` must regenerate it.
+
+The tests fail when a package has no license, when a license is not permitted
+for its group, or when the file names a different version. Do not add a license
+to the permitted list in `scripts/licenses.py` without a maintainer's decision.
+A copyleft license, such as GPL or AGPL, is not permitted in the release bundle.
 
 `mise run package` writes `THIRD_PARTY_NOTICES.txt` into the release archive.
 That file contains the license and notice files of each bundled package. The
-archive also contains `LICENSE` and `THIRD_PARTY_LICENSES.md`.
+archive also contains `LICENSE` and a `THIRD_PARTY_LICENSES.md` that the
+package step makes from the lock files. Thus the list in an archive is always
+current.
 
 Do not copy source code from a different project into this repository. If a
 copy is necessary, ask a maintainer first, keep the copyright notice, and

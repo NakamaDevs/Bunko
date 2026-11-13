@@ -1,7 +1,11 @@
 # Third-party licenses
 
-`scripts/licenses.py` generates this file from the lock files. Do not edit it.
-Run `mise run licenses` after a dependency change.
+`scripts/licenses.py` generated this file from the lock files of Bunko 0.3.1.
+Do not edit it.
+
+A dependency update after that version can make this file old. Run
+`mise run licenses` for the list of the current lock files. Each release
+archive contains the list for its own lock files.
 
 ## Release bundle
 
