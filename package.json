@@ -20,17 +20,17 @@
     "watch": "npm run aspire:dev"
   },
   "dependencies": {
-    "@pierre/diffs": "^1.5.1",
+    "@pierre/diffs": "^1.6.4",
     "vscode-jsonrpc": "8.2.1"
   },
   "devDependencies": {
     "@microsoft/aspire-cli": "13.5.4",
-    "@types/node": "24.19.0",
+    "@types/node": "24.19.2",
     "esbuild": "0.28.2",
-    "eslint": "^10.11.0",
+    "eslint": "^10.13.0",
     "nodemon": "^3.1.14",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.15",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.70.1"
+    "typescript-eslint": "8.72.0"
   }
 }
