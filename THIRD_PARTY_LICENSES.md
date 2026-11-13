@@ -1,6 +1,6 @@
 # Third-party licenses
 
-`scripts/licenses.py` generated this file from the lock files of Bunko 0.3.1.
+`scripts/licenses.py` generated this file from the lock files of Bunko 0.4.0.
 Do not edit it.
 
 A dependency update after that version can make this file old. Run
