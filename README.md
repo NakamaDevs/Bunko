@@ -69,6 +69,150 @@ offers cleanup commands to copy. The reviewer never runs them.
 Set `runtime.notes_ui_port` to serve DuckDB's UI for the notes database from
 the notes process; the default `0` leaves it off.
 
+## Choose a workspace layout
+
+Bunko supports three layouts. Each layout uses the same `workspace.json`
+schema. The layouts differ in the number of repositories and documentation
+roots.
+
+| Layout | Repositories | Documentation roots |
+| --- | --- | --- |
+| Single repository | One | One or more |
+| Monorepo | One | One for each documented folder |
+| Folder of repositories | One for each checkout | One for each documented checkout |
+
+These rules apply to all layouts:
+
+- The bootstrap `scripts/bunko.py` reads `bunko.lock.json` from the folder
+  above `scripts/`. It runs Bunko in that folder, where Bunko reads
+  `workspace.json`.
+- A repository ID contains only letters, numbers, underscores, and hyphens.
+- A documentation ID is a unique identifier, such as `guide` or `api_docs`. It
+  contains no hyphen. The names `assets`, `stylesheets`, and `javascripts` are
+  not permitted.
+- The reviewer lists a configured path only when the path contains `.git`.
+- The reviewer finds linked worktrees through Git. Do not add a linked worktree
+  as a repository.
+- Bunko copies each documentation root into its generated site. It does not
+  copy hidden names, `_build`, `node_modules`, `__pycache__`, or symbolic
+  links. `site.config` is the exception: it renders one root in place.
+
+### Single repository
+
+Use this layout for one Git repository with its documentation in one folder.
+
+1. Put `workspace.json`, `bunko.lock.json`, and `scripts/bunko.py` in the
+   repository root.
+2. Add one repository with the path `.`.
+3. Add one documentation root for the documentation folder.
+4. Add `_build/` to `.gitignore`.
+
+```json
+{
+  "schema_version": 1,
+  "name": "My project",
+  "repositories": {"project": "."},
+  "documentation": [
+    {"id": "guide", "label": "Guide", "repository": "project", "path": "docs"}
+  ]
+}
+```
+
+This is the only layout that can use `site.config`, because `site.config`
+renders exactly one documentation root.
+
+### Monorepo
+
+Use this layout for one Git repository that holds many packages or
+applications. The reviewer shows one repository. The documentation site shows
+one section for each root.
+
+1. Put `workspace.json`, `bunko.lock.json`, and `scripts/bunko.py` in the
+   repository root.
+2. Add one repository with the path `.`.
+3. Add one documentation root for each documented folder.
+4. Add `_build/` to `.gitignore`.
+
+```json
+{
+  "schema_version": 1,
+  "name": "My monorepo",
+  "repositories": {"monorepo": "."},
+  "documentation": [
+    {"id": "handbook", "label": "Handbook", "repository": "monorepo", "path": "docs"},
+    {"id": "api", "label": "API", "repository": "monorepo", "path": "packages/api/docs"},
+    {"id": "web", "label": "Web", "repository": "monorepo", "path": "apps/web/docs"}
+  ]
+}
+```
+
+Do not set `site.config` with more than one documentation root. Bunko refuses
+that configuration.
+
+### Folder of repositories
+
+Use this layout for a parent folder that holds many independent Git checkouts.
+The parent folder can be a Git repository, but that is not necessary.
+
+1. Put `workspace.json`, `bunko.lock.json`, and `scripts/bunko.py` in the
+   parent folder.
+2. Add one repository for each child checkout. Use the folder name as the path.
+3. If the parent folder is a Git repository, add it with the path `.`.
+4. Add one documentation root for each checkout that has documentation.
+5. If the parent folder is a Git repository, add `_build/` to its
+   `.gitignore`.
+
+```json
+{
+  "schema_version": 1,
+  "name": "My workspace",
+  "repositories": {
+    "workspace": ".",
+    "billing": "billing",
+    "storefront": "storefront",
+    "handbook": "handbook"
+  },
+  "documentation": [
+    {"id": "billing", "label": "Billing", "repository": "billing", "path": "docs"},
+    {"id": "storefront", "label": "Storefront", "repository": "storefront", "path": "docs"},
+    {"id": "handbook", "label": "Handbook", "repository": "handbook", "path": "."}
+  ],
+  "repository_urls": {
+    "billing": "https://github.com/example/billing"
+  },
+  "runtime": {"domain": "my-workspace.localhost", "port": 8871}
+}
+```
+
+You can keep the configuration in a different folder. Then use `../` paths or
+absolute paths for the repositories. Files for `site.config` and
+`review.stylesheets` must stay inside the folder of `workspace.json`.
+
+This layout has these limits:
+
+- **Do not use the parent folder as a documentation root.** Bunko copies every
+  file below a root, so it copies all child checkouts.
+- **A checkout with no commit stops the repository list.** The reviewer then
+  shows an error for all repositories. Remove that checkout from
+  `repositories` until it has a commit. If the checkout has an entry in
+  `repository_urls`, the documentation service also stops.
+- **A checkout with `core.bare=true` stops the repository list.** The effect is
+  the same as for a checkout with no commit.
+- **A renamed or removed folder stops each command.** Bunko reports
+  `Repository directory does not exist: <id>`. Correct the path in
+  `workspace.json`.
+- **Bunko does not find new checkouts.** Add each new checkout to
+  `workspace.json`. The reviewer reads the file on each request, so a restart
+  is not necessary for the reviewer.
+
+The reviewer runs these two commands for each repository. Both must succeed in
+each checkout:
+
+```sh
+git -C <checkout> rev-parse --abbrev-ref HEAD
+git -C <checkout> status --porcelain
+```
+
 ## Customize the site and reviewer
 
 Bunko ships a neutral look. A consumer keeps its own navigation, plugins, and
