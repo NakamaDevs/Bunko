@@ -64,18 +64,31 @@ def npm_packages():
                    spdx(entry.get("license")), base / path)
 
 
+def python_license(header):
+    """The license that one METADATA header declares.
+
+    An explicit ``License-Expression`` is authoritative and is kept whole, so
+    each of its terms is checked. The free-text ``License`` field is used only
+    when it is a known name. Otherwise every license classifier applies.
+    """
+    fields = dict(re.findall(r"^(License-Expression|License): (.+)$", header, re.MULTILINE))
+    if fields.get("License-Expression"):
+        return " ".join(term if term in ("AND", "OR", "WITH") else spdx(term)
+                        for term in re.findall(r"[()]|[^\s()]+", fields["License-Expression"])).replace("( ", "(").replace(" )", ")")
+    declared = spdx(fields.get("License"))
+    if declared in INSTALLED_ALLOWED:
+        return declared
+    classifiers = re.findall(r"^Classifier: License :: (?:OSI Approved :: )?(.+)$", header, re.MULTILINE)
+    return " AND ".join(spdx(name) for name in classifiers) or declared
+
+
 def python_packages():
     """Yield (name, version, license) for each locked Python package that is installed."""
     metadata = {}
     for path in ROOT.glob(f"{SITE_PACKAGES}/*.dist-info/METADATA"):
         header = path.read_text(errors="replace").split("\n\n", 1)[0]
-        fields = dict(re.findall(r"^(Name|License-Expression|License): (.+)$", header, re.MULTILINE))
-        classifiers = re.findall(r"^Classifier: License :: (?:OSI Approved :: )?(.+)$", header, re.MULTILINE)
-        name = re.sub(r"[-_.]+", "-", fields["Name"]).lower()
-        declared = fields.get("License-Expression") or fields.get("License") or ""
-        if spdx(declared) not in INSTALLED_ALLOWED and " " in declared.strip() and classifiers:
-            declared = classifiers[0]
-        metadata[name] = PYTHON_OVERRIDES.get(name) or spdx(declared or (classifiers[0] if classifiers else ""))
+        name = re.sub(r"[-_.]+", "-", re.search(r"^Name: (.+)$", header, re.MULTILINE).group(1)).lower()
+        metadata[name] = PYTHON_OVERRIDES.get(name) or python_license(header)
     if not metadata:
         raise SystemExit("No Python environment found. Run mise run setup first.")
     for package in tomllib.loads((ROOT / "tools/uv.lock").read_text())["package"]:

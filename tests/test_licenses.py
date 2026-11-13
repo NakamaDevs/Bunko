@@ -30,6 +30,17 @@ class LicenseTests(unittest.TestCase):
         scopes = {"bundle": {("example", "1.0.0"): "MIT OR GPL-3.0-only"}, "installed": {}, "development": {}}
         self.assertEqual(len(licenses.problems(scopes)), 1)
 
+    def test_keeps_each_term_of_an_explicit_python_expression(self):
+        header = "Name: example\nLicense-Expression: MIT AND GPL-3.0-only\nClassifier: License :: OSI Approved :: MIT License"
+        self.assertEqual(licenses.python_license(header), "MIT AND GPL-3.0-only")
+        scopes = {"bundle": {}, "installed": {("example", "1.0.0"): licenses.python_license(header)}, "development": {}}
+        self.assertEqual(len(licenses.problems(scopes)), 1)
+
+    def test_uses_every_classifier_when_python_metadata_has_no_known_license(self):
+        header = ("Name: example\nLicense: Dual License\nClassifier: License :: OSI Approved :: MIT License\n"
+                  "Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)")
+        self.assertEqual(licenses.python_license(header), "MIT AND GNU General Public License v3 (GPLv3)")
+
     def test_notices_cover_every_bundled_package(self):
         scopes, _ = licenses.collect()
         text = licenses.notices()
