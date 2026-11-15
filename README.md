@@ -34,6 +34,9 @@ Tidewave plugin; both docs and review hosts expose `/tidewave/mcp`. The toolbar
 loads from `tidewave.ai`, and authenticated Tidewave features require the user's
 own account. Static documentation builds omit the toolbar.
 
+For a mise-managed local installation and the difference between updating a
+release and activating a workspace, see [Manage Bunko with mise](docs/mise-installation.md).
+
 ## Configure a workspace
 
 ```json

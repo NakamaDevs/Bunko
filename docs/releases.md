@@ -33,3 +33,9 @@ Application installation is cached by archive digest. Each checkout owns its
 runtime directory, generated files, service identity, and database. Upgrading
 one checkout does not change another checkout's release. Port collisions fail
 startup; choose a different `runtime.port` in that workspace.
+
+## mise-managed installations
+
+For the optional GitHub-backend installation and a safe workspace activation
+sequence, see [Manage Bunko with mise](mise-installation.md). A mise tool upgrade
+installs application code; it does not restart a workspace or verify its notes.
