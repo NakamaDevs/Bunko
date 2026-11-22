@@ -24,7 +24,7 @@
     "vscode-jsonrpc": "8.2.1"
   },
   "devDependencies": {
-    "@microsoft/aspire-cli": "13.5.4",
+    "@microsoft/aspire-cli": "13.6.5",
     "@types/node": "24.19.2",
     "esbuild": "0.28.2",
     "eslint": "^10.13.0",
